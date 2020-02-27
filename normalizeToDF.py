@@ -24,6 +24,7 @@ def transform(vals):
     return v
 def normalize(path, tic):
     if os.path.exists( path + tic + r'.csv'):
+        print('start: ' + tic)
         data = pd.read_csv(path + tic + r'.csv')
         low= [0]*len(data['low'])
         high= [0]*len(data['low'])
@@ -66,6 +67,8 @@ def normalize(path, tic):
             fiftyTwoWeekAverage[i]=percentChange(base, data['52 week average'][i])
             fiftyTwoDayStandDev[i]=percentChange(base, data['52 day standard deviation'][i])
             fiftyTwoWeekStandDev[i]=percentChange(base, data['52 week standard deviation'][i])
+    else:
+        return -1
     listOfDates= data['date']
     listOfVols= data['52 week volume average']
     listOfAverages= data['52 day average']
@@ -75,4 +78,22 @@ def normalize(path, tic):
     cols=["low", "high", "average", "volume", "close", "open", "range", "twelveDay", "twentySixDay","volumeEMA", "singleDay", "dayToDay","fiftyTwoDayHigh","fiftyTwoWeekHigh","fiftyTwoDayLow","fiftyTwoWeekLow","fiftyTwoWeekAverage","fiftyTwoDayStandDev","fiftyTwoWeekStandDev"] 
     dataframe=pd.DataFrame(data=v, index=rows, columns=cols)
     return dataframe
-        
+
+
+getPath = 'historical_stock_data\\'
+savePath = 'normalized_data\\'
+
+def update_stock(tic):
+    data = normalize(getPath, tic)
+    if not isinstance(data, int):
+        data.to_csv(savePath + tic + r'.csv', index = False)
+        print('end: ' + tic)
+    return(1)
+
+if __name__ == "__main__":
+    tickers = pd.read_csv('stock_names.csv')['Ticker'] #gets stock Tickers 
+    print(tickers.iloc[1])
+    executor = concurrent.futures.ProcessPoolExecutor(10)
+    #runs the update stock tic method for each ticker
+    futures = [executor.submit(update_stock, tic) for tic in tickers]
+    concurrent.futures.wait(futures)
