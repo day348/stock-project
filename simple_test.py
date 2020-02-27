@@ -1,10 +1,12 @@
 import random
+import numpy as np
 import matrixMult as net
 import gradientDescent as gd
 import progressbar
+import pandas as pd
 
 numIterations = 1000
-errorAll = [[0]*25]*100
+errorAll = [[0]*24]*91
 ra = 0
 errorStart = 0;
 
@@ -12,9 +14,10 @@ errorStart = 0;
 bar = progressbar.ProgressBar(maxval=numIterations, \
     widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 bar.start()
-for p in range(100):
-    for q in range(25):
 
+for p in range(10,100):
+    for q in range(2,25):
+        print(q)
         #generates test outputs
         data = [ [ i*j for i in range(4) ] for j in range(4) ] 
         #generates random wieghts
@@ -22,8 +25,8 @@ for p in range(100):
                     [ [ random.randint(-2,2) for i in range(q) ] for j in range(p) ],
                     [ [ random.randint(-2,2) for i in range(1) ] for j in range(q) ]]
         #progress bar init
-        bar = progressbar.ProgressBar(maxval=numIterations, \
-            widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+        # bar = progressbar.ProgressBar(maxval=numIterations, \
+        #     widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 
 
         for k in range(numIterations):
@@ -62,21 +65,7 @@ for p in range(100):
         # print("actual")
         # print(data)
         # print(gd.errorCalc(out[1][2], data[1][2]))
+
 bar.finish()
-topten : [[10]*10]*3
-for p in range(100):
-    for q in range(25):
-        top = False
-        for i in range(10):
-            if(topten[0][i] > errorAll[p][q]):
-                top = True
-        if(top == true):
-            smallest = 10
-            for i in range(10):
-                if(topten[0][i] < smallest):
-                    smallest = topten[0][i]
-            for i in range(10):
-                if(topten[0][i] == smallest):
-                    topten[0][i] = errorAll[p][q]
-                    topten[1][i] = p
-                    topten[2][i] = q
+df = pd.DataFrame.from_records(errorAll)
+df.to_csv('test_data\\simpletests.csv', index = False)
