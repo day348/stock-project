@@ -45,7 +45,7 @@ for p in range(10,100):
             #     print(error)
             #     bar.start()
             # bar.update(k+1)
-            if(k==numIterations -1):
+            if(k==(numIterations -1)):
                 # bar.finish()
                 # print("average error:" )
                 # print(error)
@@ -68,4 +68,4 @@ for p in range(10,100):
 
 bar.finish()
 df = pd.DataFrame.from_records(errorAll)
-df.to_csv('test_data\\simpletests.csv', index = False)
+df.to_csv('test_data\\simpletests_Relu.csv', index = False)
