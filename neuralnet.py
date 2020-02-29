@@ -1,14 +1,31 @@
-import math;
-import numpy;
+import math
+import numpy
+import random
 
 class neuralnet:
     weights = [[]]
-    
-    
-    def __init__(self, input_weigths=-1, activation_funcs, error_method , parameter_list, w):
+    errorCalc = None
+    activation_functions = []
 
-        if type(input_weigths) == type(-1):
-            weights = 
+    def __init__(self,activation_funcs, input_weigths=-1, nodes_per_layer=-1 , error_method = sqErrorCalc):
+
+        #checks gives correct weight info as input
+        if type(input_weigths) == type(-1) & type(nodes_per_layer) == type(-1):
+                print("must either give nodes per layer or input weights")
+        elif type(input_weigths) == type(-1):
+            num_layers = nodes_per_layer.length
+            weights = [[ [ random.randint(-2,2) for i in range(nodes_per_layer[j]) ] for j in range(num_layers) ] * num_layers ]
+        else:
+            weights = input_weigths
+
+        #checks activation functions
+        if activation_funcs.length == weights.length:
+            activation_functions = activation_funcs
+        else:
+            print("invalid action functions")
+        #default is error squared
+        errorCalc = error_method
+
         pass
 
 
@@ -312,7 +329,7 @@ def gdBackprop(self,weights, node_values, activation_derivative, cost_derivative
     output = node_values[1][-1][0]
 
     #calculates derivative for final output 
-    tempPartials = [np.dot(cost_derivative([pre_output]) , errorCalcDeriv(target, output))]
+    tempPartials = [np.dot(cost_derivative([pre_output]) , errorCalc(target, output, deriv= True))]
     for i in range(numLayers):
         layer = -i-1
         #gets the partials for the nodes 
@@ -328,13 +345,11 @@ def gdBackprop(self,weights, node_values, activation_derivative, cost_derivative
     return deltaWeights
 
 
-def errorCalc(self,target, output):
+def sqErrorCalc(self,target, output, deriv = False):
+    if deriv:
+        return [output - target]
     return float(((target - output)**2)/2) 
 
-def errorCalcDeriv(self,target, input):
-    #print(target)
-    #print(input)
-    return [input - target]
 
 #test function
 # weights = [[[1,2],[3,4]], [[1],[2]]]
