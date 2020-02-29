@@ -10,6 +10,7 @@ errorAll = [[0]*24]*91
 ra = 0
 errorStart = 0;
 
+print(errorAll[1])
 # progress bar init
 bar = progressbar.ProgressBar(maxval=numIterations, \
     widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
@@ -17,7 +18,6 @@ bar.start()
 
 for p in range(10,100):
     for q in range(2,25):
-        print(q)
         #generates test outputs
         data = [ [ i*j for i in range(4) ] for j in range(4) ] 
         #generates random wieghts
@@ -49,7 +49,7 @@ for p in range(10,100):
                 # bar.finish()
                 # print("average error:" )
                 # print(error)
-                errorAll[p][q] = error
+                errorAll[q][p] = error
             
 
             newWeights = weights
