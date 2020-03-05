@@ -35,7 +35,7 @@ class NeuralNet:
             if(a == 0):
                 other.append(input)
             try:
-                output= self.matrixMultiplication(self.weights[a], input)
+                output= np.dot(self.weights[a].T, input)
                 other.append(output)
             except ValueError: 
                 print("Matrices were invalid dimensions or...")
@@ -79,29 +79,6 @@ class NeuralNet:
         self.weights = newWeights
 
     #helper methods
-    #helper method for calculate output
-    def matrixMultiplication(self, weights, input):
-        outputSize= len(weights[0])
-        other= len(weights)
-        lenOfInput=len(input)
-        output=[]
-        bbool=True
-        for alpha in range(0, other):
-            if(len(weights[alpha])!=outputSize):
-                #print(weights[alpha])
-                bbool=False
-        if(lenOfInput==other and bbool):
-            for a in range(0,outputSize):
-                sum=0
-                for b in range(0, other):
-                    sum+=input[b]*weights[b][a]
-                output.append(sum)
-            return output
-        else:
-            if(bbool):
-                raise ValueError("Dimensions are incompatible")
-            else:
-                raise ValueError("Weights are not all same length")
 
     #helper methods for gradient descent
     #gets the partial derivatives dE/dw_ij for an individual layers weights
