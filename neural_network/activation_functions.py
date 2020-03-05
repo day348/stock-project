@@ -1,4 +1,4 @@
-    
+import math  
 #general activation function usage
 #takes which function calling and input value
 

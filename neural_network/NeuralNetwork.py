@@ -2,27 +2,24 @@ import math
 import numpy as np
 import random
 import activation_functions as af
-class neuralnet:
+class NeuralNet:
     weights = [[]]
     errorCalc = None
     activation_functions = []
     last_output = None
-
-    def __init__(self,activation_funcs ,input_weigths=-1, nodes_per_layer=-1):
+    last_out_val = None
+    def __init__(self,activation_funcs, nodes_per_layer):
 
         #checks gives correct weight info as input
-        if (type(input_weigths) == type(-1)) & (type(nodes_per_layer) == type(-1)):
-                print("must either give nodes per layer or input weights")
-        elif type(input_weigths) == type(-1):
-            num_layers = len(nodes_per_layer)
-            self.weights =  [[ [ random.randint(-2,2) for i in range(nodes_per_layer[k+1]) ] for j in range(nodes_per_layer[k]) ] for k in range(num_layers-1) ]
-        else:
-            self.weights = input_weigths
+        num_layers = len(nodes_per_layer)
+        self.weights =  [np.random.rand(nodes_per_layer[k],nodes_per_layer[k+1])  for k in range(num_layers-1) ]
+        
         #checks activation functions
-        if len(activation_funcs) == len(self.weights)+1:
+        if len(activation_funcs) == len(self.weights):
             self.activation_functions = activation_funcs
         else:
             print("invalid action functions")
+            print(activation_funcs, self.weights)
 
         #default is error squared
         self.errorCalc = self.sqErrorCalc
@@ -46,7 +43,8 @@ class neuralnet:
             input = af.func(active,output,rando = rando)
  
         listToBeReturned.append(input)
-        self.last_output = [listToBeReturned, other] 
+        self.last_output = [listToBeReturned, other]
+        self.last_out_val = other[-1][-1] 
         return self.last_output
 
     #determines the change of weights for a specific calculation
@@ -58,7 +56,7 @@ class neuralnet:
         post_nodeValues = self.last_output[1][:-1]
         pre_output = self.last_output[0][-1][0]
         output = self.last_output[1][-1][0]
-
+        
         #calculates derivative for final output 
         cost_derivative = af.func(self.activation_functions[numLayers-1],[pre_output],deriv=True)
         tempPartials = [np.dot(cost_derivative , self.errorCalc(target, output, deriv= True))]
@@ -79,8 +77,6 @@ class neuralnet:
     #changes the weights for a given input delta weights
     def changeWeights(self, newWeights):
         self.weights = newWeights
-
-
 
     #helper methods
     #helper method for calculate output
@@ -133,6 +129,25 @@ class neuralnet:
             nodeParitals[i] = activation_deriv * np.dot(output_weights[i], output_derivatives)
 
         return nodeParitals
+
+    def backProp(self, inputs, targets, learnRate = 1, iterations=1000):
+        if len(targets) != len(inputs):
+            print("invalid size combination for inputs and outputs")
+        error = 0
+        output = [0]*len(targets)
+        for k in range(iterations):
+            error = 0
+            for i in range(len(inputs)):
+                self.calculateOutput(inputs[i])
+                self.gdBackprop(learnRate, targets[i])
+                error = error + self.sqErrorCalc(targets[i],self.last_out_val)/16
+                output[i] = self.last_out_val
+            if k == 0:
+                print("start: ", error)
+        print("end: ", error)
+        print(targets)
+        print(output)
+
 
 
     def sqErrorCalc(self,target, output, deriv = False):
