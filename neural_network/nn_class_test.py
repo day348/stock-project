@@ -1,4 +1,4 @@
-import neural_network.NeuralNetwork as nn  
+import NeuralNet as nn  
 import numpy as np
 
 x = np.array([[0, 0, 1], [1, 1, 1], [1, 0, 1], [0, 1, 1]])
