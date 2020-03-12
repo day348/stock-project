@@ -2,6 +2,7 @@ import math
 import numpy as np
 import random
 import activation_functions as af
+import time
 class NeuralNet:
     weights = [[]]
     errorCalc = None
@@ -43,19 +44,19 @@ class NeuralNet:
             input = af.func(active,output,rando = rando)
  
         listToBeReturned.append(input)
-        self.last_output = [listToBeReturned, other]
-        self.last_out_val = other[-1][-1] 
-        return self.last_output
+        # self.last_output = [listToBeReturned, other]
+        # self.last_out_val = other[-1][-1] 
+        return [listToBeReturned, other]
 
     #determines the change of weights for a specific calculation
-    def gdBackprop(self, learnRate, target):
+    def gdBackprop(self, output,learnRate, target):
         numLayers = len(self.weights)
         deltaWeights = [None]*numLayers
         #seperates the last network output to the various components
-        pre_nodeValues = self.last_output[0][:-1]
-        post_nodeValues = self.last_output[1][:-1]
-        pre_output = self.last_output[0][-1][0]
-        output = self.last_output[1][-1][0]
+        pre_nodeValues = output[0][:-1]
+        post_nodeValues = output[1][:-1]
+        pre_output = output[0][-1][0]
+        output = output[1][-1][0]
         
         #calculates derivative for final output 
         cost_derivative = af.func(self.activation_functions[numLayers-1],[pre_output],deriv=True)
@@ -65,13 +66,12 @@ class NeuralNet:
             #gets the partials for the nodes 
             #gets the weight changes
             deltaWeights[layer]  = -1 * learnRate * self.layerWeightPartials(post_nodeValues[layer], tempPartials)
-
             #calculates the partials for the node inputs for the next iteration
             if(i != numLayers-1):
                 #for hidden layers only
                 tempPartials = self.nodeDerivatives(pre_nodeValues[layer], self.weights[layer], self.activation_functions[i], tempPartials)
-        #updates weights
-        self.weights =[self.weights[i] + deltaWeights[i] for i in range(numLayers)]
+        # #updates weights
+        # self.weights =[self.weights[i] + deltaWeights[i] for i in range(numLayers)]
         return deltaWeights
 
     #changes the weights for a given input delta weights
@@ -104,6 +104,11 @@ class NeuralNet:
             node_input = [node_values[i]]
             activation_deriv = af.func(selector, node_input, deriv = True)[0]
             nodeParitals[i] = activation_deriv * np.dot(output_weights[i], output_derivatives)
+        # print(node_values)
+        # activation_deriv = af.func(selector, node_values, deriv = True)
+        # nodeParitals = activation_deriv * np.dot(output_weights, output_derivatives)
+
+
 
         return nodeParitals
 
@@ -112,15 +117,30 @@ class NeuralNet:
             print("invalid size combination for inputs and outputs")
         error = 0
         output = [0]*len(targets)
+        calcTime = 0
+        gradientTime = 0
+
+
+
+
+
+
+
         for k in range(iterations):
             error = 0
             for i in range(len(inputs)):
-                self.calculateOutput(inputs[i])
-                self.gdBackprop(learnRate, targets[i])
+                startTime = time.time()
+                output = self.calculateOutput(inputs[i])
+                calcTime = calcTime + time.time() -startTime
+                startTime = time.time()
+                deltaWeights = self.gdBackprop(output,learnRate, targets[i])
+                gradientTime = gradientTime + time.time() - startTime
                 error = error + self.sqErrorCalc(targets[i],self.last_out_val)/16
-                output[i] = self.last_out_val
+                output[i] = output
             if k == 0:
                 print("start: ", error)
+        print("calc time: ", calcTime)
+        print("gradient time: ", gradientTime)       
         print("end: ", error)
         print(targets)
         print(output)
@@ -131,10 +151,6 @@ class NeuralNet:
         if deriv:
             return output - target
         return float(((target - output)**2)/2) 
-
-
-
-
 
 
 
