@@ -89,6 +89,7 @@ class NeuralNet:
         weightPartials = np.zeros((rows,cols))
         # print(inputVals)
         # print(outputDerivatives)
+        #TO Do: use dot product here
         for i in range(rows):
             for j in range(cols):
                 weightPartials[i][j]  = inputVals[i] * outputDerivatives[j]
@@ -100,6 +101,7 @@ class NeuralNet:
         numNodes = len(node_values)
         nodeParitals = np.zeros(numNodes)
 
+        #TO Do: use dot product here
         for i in range(numNodes):
             node_input = [node_values[i]]
             activation_deriv = af.func(selector, node_input, deriv = True)[0]
@@ -116,10 +118,10 @@ class NeuralNet:
         if len(targets) != len(inputs):
             print("invalid size combination for inputs and outputs")
         error = 0
-        output = [0]*len(targets)
+        output = None
         calcTime = 0
         gradientTime = 0
-
+        deltaWeights = [0]*len(inputs)
 
 
 
@@ -128,22 +130,29 @@ class NeuralNet:
 
         for k in range(iterations):
             error = 0
+            #TO Do: do multiple threads right here 
             for i in range(len(inputs)):
                 startTime = time.time()
                 output = self.calculateOutput(inputs[i])
                 calcTime = calcTime + time.time() -startTime
                 startTime = time.time()
-                deltaWeights = self.gdBackprop(output,learnRate, targets[i])
+                deltaWeights[i] = self.gdBackprop(output,learnRate, targets[i])
                 gradientTime = gradientTime + time.time() - startTime
-                error = error + self.sqErrorCalc(targets[i],self.last_out_val)/16
-                output[i] = output
+                error = error + self.sqErrorCalc(targets[i],output[-1][-1][-1])/16
+                output = output
+
+            # TO DO: average and update weights together
+
             if k == 0:
-                print("start: ", error)
+                print("start: ", error)    
+                print(deltaWeights)
+
         print("calc time: ", calcTime)
         print("gradient time: ", gradientTime)       
         print("end: ", error)
-        print(targets)
-        print(output)
+        # print(error)
+        # print(targets)
+        # print(output[-1])
 
 
 
@@ -153,4 +162,11 @@ class NeuralNet:
         return float(((target - output)**2)/2) 
 
 
+    def getWeightsAverageKernel(self,deltaWeights,curr):
+        avgDelta = curr
+        try:
+            for i in range(len(curr)):
+                avgDelta[i] = self.getWeightsAverageKernel()
+        except expression as identifier:
+            pass
 
