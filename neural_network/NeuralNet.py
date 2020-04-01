@@ -15,8 +15,6 @@ class NeuralNet:
     last_output = None
     last_out_val = None
     #time stats
-    lwp = 0
-    nderiv = 0
 
     #Creates a nural network whoes weights are initialized to random values 
     #@param:    activation_funcs    a list with the activation number code corresponding to 
@@ -84,15 +82,11 @@ class NeuralNet:
             layer = -i-1
             #gets the partials for the nodes 
             #gets the weight changes
-            self.lwp = self.lwp -time.time()
             deltaWeights[layer]  = -1 * learnRate * self.layerWeightPartials(post_nodeValues[layer], tempPartials)
-            self.lwp = self.lwp + time.time()
             #calculates the partials for the node inputs for the next iteration
             if(i != numLayers-1):
                 #for hidden layers only
-                self.nderiv = self.nderiv -time.time()
                 tempPartials = self.nodeDerivatives(pre_nodeValues[layer], self.weights[layer], self.activation_functions[i], tempPartials)
-                self.nderiv = self.nderiv +time.time()
         # #updates weights
         # self.weights =[self.weights[i] + deltaWeights[i] for i in range(numLayers)]
         return deltaWeights
@@ -211,8 +205,6 @@ class NeuralNet:
         print("end: ", error)
         print("run time normal: ", runTimeNormal)
         print("runt time parrallel: ", runTimeOther)
-        print("lws: ", self.lwp)
-        print("nderiv: ", self.nderiv)
         # print(error)
         # print(targets)
         # print(output[-1])
