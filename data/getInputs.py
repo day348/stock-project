@@ -4,9 +4,11 @@ def getInputs(tic, date, globe, datesToNums):
     datesToNums= dict(zip(listOfDates, listOfNums))
     new_dict = dict([(value, key) for key, value in datesToNums.items()]) 
     beginningIndex= datesToNums[date]
-    endIndex=beginningIndex+20
+    endIndex=beginningIndex-20
+    if(endIndex<0):
+        return -1
     relevantDates=[]
-    for i in range(beginningIndex, endIndex):
+    for i in range(endIndex, beginningIndex):
         relevantDates.append(new_dict[i])
     output=[]
     for i in relevantDates:
