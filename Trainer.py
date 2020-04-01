@@ -22,10 +22,20 @@ for tic in stock_tickers:
 #get input vectors for a specific stock 
 tic = stock_tickers[0]
 
+#gets the dates and the assosiated close values
 output_values = pd.read_csv('data\\normalized_data\\' + tic + '.csv')
+#creates an array of input vectors for a given stock and the training days
 input_values = [0]*len(output_values.index)
 for i in range(len(output_values.index)):
-    data = output_values
-    input_values[]get_inputs(data, tic)
-print(output_values.index)
+    date = output_values.index[i]
+    input = get_inputs(tic,date)
+    #catches error if not enough previous days
+    if input == -1:
+        output_values.drop(date)
+    input_values[i] = get_inputs(tic, date)
+
+
  
+
+def get_inputs(tic, date):
+    pass
