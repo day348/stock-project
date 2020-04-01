@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import random
-import activation_functions as af
+import neural_network.activation_functions as af
 import time
 import concurrent.futures
 from multiprocessing import Pool
@@ -17,6 +17,12 @@ class NeuralNet:
     #time stats
     lwp = 0
     nderiv = 0
+
+    #Creates a nural network whoes weights are initialized to random values 
+    #@param:    activation_funcs    a list with the activation number code corresponding to 
+    #                               each layer of nodes
+    #@param:    Nodes_per_layer     a list with the number of nodes per layer at each index
+    #                               corresponding to each layer of the network
     def __init__(self,activation_funcs, nodes_per_layer):
 
         #checks gives correct weight info as input
@@ -34,6 +40,8 @@ class NeuralNet:
         self.errorCalc = self.sqErrorCalc
 
     #given an input to the neuralnet calculates the output
+    #   currently does not edit the last output class variable 
+    #   so that there are no lock issues with parralizations
     def calculateOutput(self, input, rando = None):
         b=len(self.weights);
         listToBeReturned=[]
@@ -56,6 +64,11 @@ class NeuralNet:
         return [listToBeReturned, other]
 
     #determines the change of weights for a specific calculation
+    #   no class variable edits for reason above
+    #@param     output  -the last output of each node to the nueral network 
+    #           including both the before and after activation function values  
+    #@param     learnRate   -the learning rate of the algorithm
+    #@param     target      -the value for which the ouput is supposed to predict
     def gdBackprop(self, output,learnRate, target):
         numLayers = len(self.weights)
         deltaWeights = [None]*numLayers
@@ -85,13 +98,15 @@ class NeuralNet:
         return deltaWeights
 
     #changes the weights for a given input delta weights
-    def changeWeights(self, newWeights):
-        self.weights = newWeights
+    def updateWeights(self, deltaWeights):
+        for i in range(len(self.weights)):
+            self.weights[i] = self.weights[i] + deltaWeights[i]
 
     #helper methods
 
     #helper methods for gradient descent
     #gets the partial derivatives dE/dw_ij for an individual layers weights
+    #TO DO: get this on the GPU
     def layerWeightPartials(self, inputVals, outputDerivatives):
 
         rows = len(inputVals)
@@ -110,6 +125,7 @@ class NeuralNet:
         return weightPartials
 
     #gets the partial derivatives dE/dn_i for an individual layers nodes
+    #TO DO: get this on the GPU
     def nodeDerivatives(self, node_values, output_weights, selector, output_derivatives):
         numNodes = len(node_values)
         nodeParitals = np.zeros(numNodes)
@@ -121,19 +137,8 @@ class NeuralNet:
 
         return nodeParitals
 
-    def nodeDerivativesHelper(self, node_values, output_weights, selector, output_derivatives, j):
-        
-        for i in range(j*100, j*100+100):
-            if i == len(node_values):
-                return
-            node_input = [node_values[i]]
-            activation_deriv = af.func(selector, node_input, deriv = True)[0]
-            val = activation_deriv * np.dot(output_weights[i], output_derivatives)
-
-    def backProp(self, inputs, targets, learnRate = 1, iterations=1000):
-        return activation_deriv * np.dot(output_weights[i], output_derivatives)
-
-    def backProp(self, inputs, targets, learnRate = 1, iterations=1000):
+    #This 
+    def backProp(self, inputs, targets, learnRate = .01, iterations=1):
         if len(targets) != len(inputs):
             print("invalid size combination for inputs and outputs")
         error = 0
@@ -145,12 +150,12 @@ class NeuralNet:
 
         runTimeNormal = 0
         runTimeOther = 0
-
-        step = int(len(inputs) / 20)
+        #creates a step size that takes the number of inputs and divides by 20
+        #to split the input data into approximetly 20 parralizable functions to calcuate
+        inputs_per_process = int(len(inputs) / 20)
         if len(inputs) % 20 != 0:
-            step = step+1
-            
-        helper = partial(self.calcWeights, inputs, targets, learnRate,step)
+            inputs_per_process = inputs_per_process+1
+        helper = partial(self.calcWeights, inputs, targets, learnRate/len(inputs),inputs_per_process)
         bar = ProgressBar(maxval = iterations)
         for k in range(iterations):
 
@@ -159,12 +164,28 @@ class NeuralNet:
             # #runs the update stock tic method for each ticker
             # futures = [executor.submit(helper, tic) for tic in range(len(inputs))]
             # concurrent.futures.wait(futures)
-            
+
+
+            #this creates generates multiple processes to run a back propogation 
+            #for the weights. results holds an array of the calculated weight changes
+            #for EACH input 
             pool = Pool()
-            results = pool.map(helper, range(int(len(inputs)/step)+1))
+            num_processes = int(len(inputs)/inputs_per_process)+1
+            results = pool.map(helper, range(num_processes))
             pool.close()
             pool.join()
             runTimeOther = runTimeOther + time.time() - startTime 
+            print(num_processes)
+            #this sums the individual weight changes
+            newWeights = results[0][0]
+            for i in range(len(results)):
+                for j in range(len(results[i])):
+                    for l in range(len(results[i][j])):
+                        newWeights[l] = newWeights[l] + results[i][j][l]
+            # print(self.weights)
+            # print(newWeights)
+            self.updateWeights(newWeights)
+            #print(self.weights)
 
             error = 0
             runTimeNormal = runTimeNormal - time.time()
