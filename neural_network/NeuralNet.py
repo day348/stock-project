@@ -146,7 +146,7 @@ class NeuralNet:
         calcTime = 0
         gradientTime = 0
         deltaWeights = [0]*len(inputs)
-
+        start_error =0
 
         runTimeNormal = 0
         runTimeOther = 0
@@ -156,8 +156,8 @@ class NeuralNet:
         if len(inputs) % 20 != 0:
             inputs_per_process = inputs_per_process+1
         helper = partial(self.calcWeights, inputs, targets, learnRate/len(inputs),inputs_per_process)
-        bar = ProgressBar(maxval = iterations)
-        for k in range(iterations):
+        bar = ProgressBar()
+        for k in bar(range(iterations)):
 
             startTime = time.time()
             # executor = concurrent.futures.ProcessPoolExecutor(5)
@@ -175,7 +175,6 @@ class NeuralNet:
             pool.close()
             pool.join()
             runTimeOther = runTimeOther + time.time() - startTime 
-            print(num_processes)
             #this sums the individual weight changes
             newWeights = results[0][0]
             for i in range(len(results)):
@@ -200,16 +199,12 @@ class NeuralNet:
                 output = output
             runTimeNormal = runTimeNormal + time.time()
             # TO DO: average and update weights together
-            
 
             if k == 0:
-                print("start: ", error)   
-                bar.start() 
+                start_error = error   
                 # print("multi: ", results[0][0])
                 # print("single: ", deltaWeights[0])
                 # print(deltaWeights)
-            bar.update(k)
-        bar.finish()
 
         print("calc time: ", calcTime)
         print("gradient time: ", gradientTime)       
