@@ -26,13 +26,12 @@ if __name__ == "__main__":
 
     #run this for every stock 
     #store in the 
-    
+
     #get input vectors for a specific stock 
     tic = stock_tickers[0]
 
     #gets the dates and the assosiated close values
     output_values = pd.read_csv('data\\training\\' + tic + '.csv')
-    print(len(output_values))
     #creates an array of input vectors for a given stock and the training days
     input_values = [0]*len(output_values.index)
     data = pd.read_csv('data\\normalized_data\\' + tic + '.csv')

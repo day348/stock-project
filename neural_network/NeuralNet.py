@@ -137,94 +137,58 @@ class NeuralNet:
             print("invalid size combination for inputs and outputs")
         error = 0
         output = None
-        calcTime = 0
-        gradientTime = 0
-        deltaWeights = [0]*len(inputs)
         start_error =0
-
-        runTimeNormal = 0
-        runTimeOther = 0
+        end_error = 0
         #creates a step size that takes the number of inputs and divides by 20
         #to split the input data into approximetly 20 parralizable functions to calcuate
         inputs_per_process = int(len(inputs) / 20)
         if len(inputs) % 20 != 0:
             inputs_per_process = inputs_per_process+1
-        helper = partial(self.calcWeights, inputs, targets, learnRate/len(inputs),inputs_per_process)
+        helper = partial(self.calcWeights, inputs, targets, learnRate,inputs_per_process)
         bar = ProgressBar()
         for k in bar(range(iterations)):
-
-            startTime = time.time()
-            # executor = concurrent.futures.ProcessPoolExecutor(5)
-            # #runs the update stock tic method for each ticker
-            # futures = [executor.submit(helper, tic) for tic in range(len(inputs))]
-            # concurrent.futures.wait(futures)
-
-
             #this creates generates multiple processes to run a back propogation 
             #for the weights. results holds an array of the calculated weight changes
             #for EACH input 
-            # print('about to start parrallel')
             pool = Pool()
-            num_processes = int(len(inputs)/inputs_per_process)+1
-            print(num_processes)
-            print(inputs_per_process)
+            num_processes = int(len(inputs)/inputs_per_process)
+            if num_processes*inputs_per_process < len(inputs):
+                num_processes+1
+            # print(num_processes)
+            # print(inputs_per_process)
             results = pool.map(helper, range(num_processes))
             pool.close()
             pool.join()
-            runTimeOther = runTimeOther + time.time() - startTime 
             #this sums the individual weight changes
-            newWeights = results[0][0]
-            for i in range(len(results)):
-                for j in range(len(results[i])):
-                    for l in range(len(results[i][j])):
-                        newWeights[l] = newWeights[l] + results[i][j][l]
-            # print(self.weights)
-            # print(newWeights)
-            self.updateWeights(newWeights)
-            #print(self.weights)
-            # print('about to start normal')
             error = 0
-            runTimeNormal = runTimeNormal - time.time()
-            for i in range(len(inputs)):
-                startTime = time.time()
-                output = self.calculateOutput(inputs[i])
-                calcTime = calcTime + time.time() -startTime
-                startTime = time.time()
-                deltaWeights[i] = self.gdBackprop(output,learnRate/len(inputs), targets[i])
-                gradientTime = gradientTime + time.time() - startTime
-                error = error + self.sqErrorCalc(targets[i],output[-1][-1][-1])/16
-                output = output
-            runTimeNormal = runTimeNormal + time.time()
-            # TO DO: average and update weights together
-            newNewWeights = deltaWeights[0]
-            for i in range(len(deltaWeights)):
-                for j in range(len(deltaWeights[i])):
-                    newNewWeights[j] = newNewWeights[j] + deltaWeights[i][j]
-            print(newWeights)
-            print(newNewWeights)
+           
+            deltaWeights = results[0][0][0]
+            for i in range(len(results)):
+                for j in range(len(results[i][0])):
+                    error = error + results[i][1]
+                    for l in range(len(results[i][0][j])):
+                        deltaWeights[l] = deltaWeights[l] + results[i][0][j][l]
+            # print(self.weights)
+            self.updateWeights(deltaWeights)
             if k == 0:
-                start_error = error   
-                # print("multi: ", results[0][0])
-                # print("single: ", deltaWeights[0])
-                # print(deltaWeights)
-        
-        print("calc time: ", calcTime)
-        print("gradient time: ", gradientTime)       
-        print("end: ", error)
-        print("run time normal: ", runTimeNormal)
-        print("runt time parrallel: ", runTimeOther)
-        # print(error)
-        # print(targets)
-        # print(output[-1])
+                start_error = error
+            elif k == iterations-1: 
+                end_error = error
+            # print(deltaWeights)
+            # print(self.weights)
+        return [start_error, end_error]
+ 
 
     def calcWeights(self, inputs, targets,learnRate, step,j):
         delta = [0]*step
+        error = 0
         for i in range(step):
             if i+j*step >= len(inputs):
                 return delta[0:i]
             output = self.calculateOutput(inputs[i+j*step])
             delta[i] = self.gdBackprop(output,learnRate, targets[i+j*step])
-        return delta
+            error = error + self.sqErrorCalc(targets[i+j*step], output[-1][-1][-1])
+        return [delta, error]
         
 
     def test(self, i):
