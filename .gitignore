@@ -1,3 +1,5 @@
 data/historical_stock_data/
 data/normalized_data/
-data/training_data/
+data/training/
+data/testing/
+data/training/
