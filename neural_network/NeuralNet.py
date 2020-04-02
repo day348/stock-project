@@ -6,7 +6,6 @@ import time
 import concurrent.futures
 from multiprocessing import Pool
 from functools import partial
-from progressbar import ProgressBar
 
 class NeuralNet:
     weights = [[]]
@@ -145,8 +144,7 @@ class NeuralNet:
         if len(inputs) % 20 != 0:
             inputs_per_process = inputs_per_process+1
         helper = partial(self.calcWeights, inputs, targets, learnRate,inputs_per_process)
-        bar = ProgressBar()
-        for k in bar(range(iterations)):
+        for k in range(iterations):
             #this creates generates multiple processes to run a back propogation 
             #for the weights. results holds an array of the calculated weight changes
             #for EACH input 
@@ -200,12 +198,4 @@ class NeuralNet:
             return output - target
         return float(((target - output)**2)/2) 
 
-
-    def getWeightsAverageKernel(self,deltaWeights,curr):
-        avgDelta = curr
-        try:
-            for i in range(len(curr)):
-                avgDelta[i] = self.getWeightsAverageKernel()
-        except expression as identifier:
-            pass
 
