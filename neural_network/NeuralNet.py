@@ -163,8 +163,11 @@ class NeuralNet:
             #this creates generates multiple processes to run a back propogation 
             #for the weights. results holds an array of the calculated weight changes
             #for EACH input 
+            # print('about to start parrallel')
             pool = Pool()
             num_processes = int(len(inputs)/inputs_per_process)+1
+            print(num_processes)
+            print(inputs_per_process)
             results = pool.map(helper, range(num_processes))
             pool.close()
             pool.join()
@@ -179,7 +182,7 @@ class NeuralNet:
             # print(newWeights)
             self.updateWeights(newWeights)
             #print(self.weights)
-
+            # print('about to start normal')
             error = 0
             runTimeNormal = runTimeNormal - time.time()
             for i in range(len(inputs)):
@@ -187,19 +190,24 @@ class NeuralNet:
                 output = self.calculateOutput(inputs[i])
                 calcTime = calcTime + time.time() -startTime
                 startTime = time.time()
-                deltaWeights[i] = self.gdBackprop(output,learnRate, targets[i])
+                deltaWeights[i] = self.gdBackprop(output,learnRate/len(inputs), targets[i])
                 gradientTime = gradientTime + time.time() - startTime
                 error = error + self.sqErrorCalc(targets[i],output[-1][-1][-1])/16
                 output = output
             runTimeNormal = runTimeNormal + time.time()
             # TO DO: average and update weights together
-
+            newNewWeights = deltaWeights[0]
+            for i in range(len(deltaWeights)):
+                for j in range(len(deltaWeights[i])):
+                    newNewWeights[j] = newNewWeights[j] + deltaWeights[i][j]
+            print(newWeights)
+            print(newNewWeights)
             if k == 0:
                 start_error = error   
                 # print("multi: ", results[0][0])
                 # print("single: ", deltaWeights[0])
                 # print(deltaWeights)
-
+        
         print("calc time: ", calcTime)
         print("gradient time: ", gradientTime)       
         print("end: ", error)
