@@ -1,6 +1,8 @@
-def getInputs(tic, date, globe, datesToNums):
-    listOfDates= list(vals.index)
-    listOfNums=[x for x in range(0,2889)]
+import numpy as np
+
+def getInputs(tic, date, inputData): 
+    listOfDates= list(inputData.index)
+    listOfNums=[x for x in range(0,len(listOfDates))]
     datesToNums= dict(zip(listOfDates, listOfNums))
     new_dict = dict([(value, key) for key, value in datesToNums.items()]) 
     beginningIndex= datesToNums[date]
@@ -12,24 +14,24 @@ def getInputs(tic, date, globe, datesToNums):
         relevantDates.append(new_dict[i])
     output=[]
     for i in relevantDates:
-        output.append(globe['low'][i])
-        output.append(globe['high'][i])
-        output.append(globe['average'][i])
-        output.append(globe['volume'][i])
-        output.append(globe['close'][i])
-        output.append(globe['open'][i])
-        output.append(globe['range'][i])
-        output.append(globe['twelveDay'][i])
-        output.append(globe['twentySixDay'][i])
-        output.append(globe['volumeEMA'][i])
-        output.append(globe['singleDay'][i])
-        output.append(globe['dayToDay'][i])
-        output.append(globe['fiftyTwoDayHigh'][i])
-        output.append(globe['fiftyTwoWeekHigh'][i])
-        output.append(globe['fiftyTwoDayLow'][i])
-        output.append(globe['fiftyTwoWeekLow'][i])
-        output.append(globe['fiftyTwoWeekAverage'][i])
-        output.append(globe['fiftyTwoDayStandDev'][i])
-        output.append(globe['fiftyTwoWeekStandDev'][i])
+        output.append(inputData['low'][i])
+        output.append(inputData['high'][i])
+        output.append(inputData['average'][i])
+        output.append(inputData['volume'][i])
+        output.append(inputData['close'][i])
+        output.append(inputData['open'][i])
+        output.append(inputData['range'][i])
+        output.append(inputData['twelveDay'][i])
+        output.append(inputData['twentySixDay'][i])
+        output.append(inputData['volumeEMA'][i])
+        output.append(inputData['singleDay'][i])
+        output.append(inputData['dayToDay'][i])
+        output.append(inputData['fiftyTwoDayHigh'][i])
+        output.append(inputData['fiftyTwoWeekHigh'][i])
+        output.append(inputData['fiftyTwoDayLow'][i])
+        output.append(inputData['fiftyTwoWeekLow'][i])
+        output.append(inputData['fiftyTwoWeekAverage'][i])
+        output.append(inputData['fiftyTwoDayStandDev'][i])
+        output.append(inputData['fiftyTwoWeekStandDev'][i])
     return np.array(output)
     
