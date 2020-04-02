@@ -1,13 +1,15 @@
 import neural_network.NeuralNet as nn
 from data.inputsForBackProp import inputsForBackProp
-from progressbar import ProgressBar
 from multiprocessing import Pool
+from progressbar import ProgressBar
+import tqdm
+import sys
 import time
 import pandas as pd 
 import os
 
 #setup
-NODES_PER_LAYER = [380,500,100,50,20,1]
+NODES_PER_LAYER = [380,100,100,50,20,1]
 ACTIVATION_FUNCTIONS = [7,7,7,4,4]
 NUM_ITERATIONS = 1
 """
@@ -23,6 +25,7 @@ if __name__ == "__main__":
     network = nn.NeuralNet(ACTIVATION_FUNCTIONS, NODES_PER_LAYER)
     #get tickers 
     stock_tickers = pd.read_csv('data\\stock_names.csv')['Ticker']
+    #removes tickers wihtout data
     for tic in stock_tickers:
         if not os.path.exists('data\\training\\' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
@@ -32,9 +35,9 @@ if __name__ == "__main__":
     print("loading training data")
     #get input training dictionaries 
     loading_time = -time.time()
-    #mutlithreads 
+    #spawns a process for each stock data that needs to be loaded 
     pool = Pool()
-    results = pool.map(inputsForBackProp, stock_tickers)
+    results = list(tqdm.tqdm(pool.imap(inputsForBackProp, stock_tickers), total=len(stock_tickers)))
     pool.close()
     pool.join()
     inputs = {}
