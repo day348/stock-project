@@ -6,6 +6,7 @@ import time
 import concurrent.futures
 from multiprocessing import Pool
 from functools import partial
+from numba import jit, cuda
 
 class NeuralNet:
     weights = [[]]
@@ -119,6 +120,8 @@ class NeuralNet:
 
     #gets the partial derivatives dE/dn_i for an individual layers nodes
     #TO DO: get this on the GPU
+    #@jit(target="cuda")
+    @jit
     def nodeDerivatives(self, node_values, output_weights, selector, output_derivatives):
         numNodes = len(node_values)
         nodeParitals = np.zeros(numNodes)
@@ -136,18 +139,20 @@ class NeuralNet:
             print("invalid size combination for inputs and outputs")
         error = 0
         output = None
-        start_error =0
+        start_error = 0
         end_error = 0
         #creates a step size that takes the number of inputs and divides by 20
         #to split the input data into approximetly 20 parralizable functions to calcuate
-        inputs_per_process = int(len(inputs) / 20)
-        if len(inputs) % 20 != 0:
-            inputs_per_process = inputs_per_process+1
-        helper = partial(self.calcWeights, inputs, targets, learnRate,inputs_per_process)
+        #inputs_per_process = int(len(inputs) / 20)
+        #if len(inputs) % 20 != 0:
+        #    inputs_per_process = inputs_per_process+1
+        #helper = partial(self.calcWeights, inputs, targets, learnRate,inputs_per_process)
+        
         for k in range(iterations):
             #this creates generates multiple processes to run a back propogation 
             #for the weights. results holds an array of the calculated weight changes
             #for EACH input 
+            """
             pool = Pool()
             num_processes = int(len(inputs)/inputs_per_process)
             if num_processes*inputs_per_process < len(inputs):
@@ -155,11 +160,14 @@ class NeuralNet:
             # print(num_processes)
             # print(inputs_per_process)
             results = pool.map(helper, range(num_processes))
+            
             pool.close()
             pool.join()
+            """
+            results = self.calcWeights(inputs, targets, learnRate)
             #this sums the individual weight changes
             error = 0
-           
+
             deltaWeights = results[0][0][0]
             for i in range(len(results)):
                 for j in range(len(results[i][0])):
@@ -175,17 +183,15 @@ class NeuralNet:
             # print(deltaWeights)
             # print(self.weights)
         return [start_error, end_error]
- 
 
-    def calcWeights(self, inputs, targets,learnRate, step,j):
-        delta = [0]*step
+
+    def calcWeights(self, inputs, targets,learnRate):
+        delta = [0]
         error = 0
-        for i in range(step):
-            if i+j*step >= len(inputs):
-                return delta[0:i]
-            output = self.calculateOutput(inputs[i+j*step])
-            delta[i] = self.gdBackprop(output,learnRate, targets[i+j*step])
-            error = error + self.sqErrorCalc(targets[i+j*step], output[-1][-1][-1])
+        for i in range(len(inputs)):
+            output = self.calculateOutput(inputs[i])
+            delta[i] = self.gdBackprop(output,learnRate, targets[i])
+            error = error + self.sqErrorCalc(targets[i], output[-1][-1][-1])
         return [delta, error]
         
 
