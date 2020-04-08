@@ -6,6 +6,7 @@ import statistics as stats
 #intialize with varying weights for each layer but the same amount
 #of layers and nodes per layer
 #initialized with random activation functions as well
+#outputs neural nets as a list
 def genRandom(population, nodes_per_layer):
     neuralNets=[]
     layers=len(nodes_per_layer)
@@ -16,8 +17,12 @@ def genRandom(population, nodes_per_layer):
         net= nn.NeuralNet(activation_funcs,nodes_per_layer)
         neuralNets.append(net)
     return neuralNets
+
+
 #Initial training of random population before genetic algs do their
-#thing
+#thing, pass in list of neural networks and the training dictionaries
+#optionally pass in iterations for back propogation to be ran
+#outputs updated neural nets 
 def runBackProp(neuralNets, tics_to_inputs, tics_to_outputs, its=5):
     #get all the tics
     tics=tics_to_inputs.keys()
@@ -33,6 +38,9 @@ def runBackProp(neuralNets, tics_to_inputs, tics_to_outputs, its=5):
                 neuralNets[a].backProp(inputs,outputs)
     return neuralNets
 
+
+#Pass in single neural network and training data dictionaries
+#outputs a single fitness score for the neural net
 def singleScore(neuralNet, tics_to_outputs, tics_to_inputs):
     scores=[]
     for tic in tics_to_outputs.keys():
@@ -45,12 +53,18 @@ def singleScore(neuralNet, tics_to_outputs, tics_to_inputs):
         scores.append(fitness(real, calc))
     score=stats.mean(scores)
     return score
+
+#Pass in list of neural networks and the training data dictionaries
+#returns a dictionary of the neural networks and their scores 
 def cumulativeScore(neuralNets, tics_to_outputs, tics_to_inputs)
     scoresDictionary={}
     for i in neuralNets:
-        singleScore(i,tics_to_outputs, tics_to_inputs)
+        score=singleScore(i,tics_to_outputs, tics_to_inputs)
         scoresDictionary.update({i,score})
     return scoresDictionary
+
+#takes in the actual values and what the neural net outputs
+#returns the fitness score for the neural net
 def fitness(actualVals,output):
     mad= 1/meanAbsoluteDev(actualVals, output)
     med= 1/medianAbsoluteDev(actualVals, output)
@@ -62,6 +76,9 @@ def fitness(actualVals,output):
 
 
 #roulette wheel selection
+#input the scores dictionary of neural nets with their scores
+#and the amount of parents you want
+#returns a dictionary of the to be parent neural nets and their fitness scores
 def selection(scoresDictionary, amount):
     selection={}
     #normalize the scores
@@ -105,15 +122,82 @@ def selection(scoresDictionary, amount):
         selection.update({keyToSee: valToSee})
     return selection
 
-
-def evaluation(population, scoresDictionary):
+#generates next generation with population as the threshold
+#value for amount in the next generation and scoresDictionary that
+#maps neural nets to their fitness scores. Also takes in amount of 
+#parents to select for next generation
+#Returns list of next generation of neural nets
+def evaluation(population, scoresDictionary, amount, nodes_per_layer):
     while(len(scoresDictionary)>population):
         scores=scoresDictionary.values()
         minScore=min(scores)
         scoresDictionary={key:val for key,val in scoresDictionary if val!=minScore}
-    return scoresDictionary
+    return nextGen
+
+#Takes in a dictionary of those selected to be parents
+#Takes in a dictionary of all the neural nets and their scores
+#Takes in a population threshold (optionally takes in proportion to mutate)
+#Returns list of mutated to pass to next generation
+def mutateThoseJohns(population, selectionDictionary, scoresDictionary, nodes_per_layer, mutate=0.03):
+    #get the list of neural networks
+    listOfPotential=scoresDictionary.keys()
+    #get the list of the selected neural networks
+    listOfSelected=selectionDictionary.keys()
+    #find the length of the list of potential
+    totalLength=len(listOfPotential)
+    #set amount selected to 0
+    amountForMutate=0
+    #set amount to select to the proportion of the population needed to
+    #be mutated
+    amountToMutate=population*mutate
+    #list of mutated
+    listOfMutated=[]
+    #loop until all have been selected for mutation
+    while(amountForMutate<amountToMutate):
+        #get a random index to select
+        randomIndex=random.randInt(0,totalLength-1)
+        #select it
+        neuralNetToMutate=listOfPotential[randomIndex]
+        #if it was not already selected
+        if(neuralNetToMutate not in listOfSelected):
+            #mutate it
+            neuralNetToMutate=mutateThatJohn(neuralNetToMutate, nodes_per_layer)
+            #add it to the list
+            listOfMutated.append(neuralNetToMutate)
+            #increment
+            amountForMutate+=1
+    #return list
+    return listOfMutated
+
+#This function takes in a single neural network
+#Mutates its weights (not activation functions)
+#and returns the mutated neural net
+#inversion mutation
+def mutateThatJohn(neuralNetToMutate, nodes_per_layer):
+    #don't mutate the activation functions
+    activation_funcs=neuralNetToMutate.activation_funcs
+    #creates new neural network
+    neuralNetToReturn= nn.NeuralNet(activation_funcs,nodes_per_layer)
+    weightsOf=neuralNetToMutate.weights
+    #get total amount of weights
+    totalAmtOfWeights=0
+    for a in range(0,len(weights)):
+        for b in range(0,len(weights[a])):
+            for c in range(0,len(weights[a][b])):
+                totalAmtOfWeights+=1
+    b=0
+    c=0
+    #loop until we get two different indices
+    while(c==b):
+        b= random.randInt(0,totalAmtOfWeights)
+        c= random.randInt(0,totalAmtOfWeights)
 
 
+
+
+#inputs two neural networks and a list of the nodes per layer 
+#and crosses over the activation functions and weights of the
+#two neural networks and returns the network that is their child
 def crossover(neuralNetwork1, neuralNetwork2, nodes_per_layer):
     #get the weights of each neural network
     weights1=neuralNetwork1.weights
@@ -137,12 +221,12 @@ def crossover(neuralNetwork1, neuralNetwork2, nodes_per_layer):
     totalAmtOfWeights=0
     for a in range(0,len(weights)):
         for b in range(0,len(weights[a])):
-            for c in range(0,len(weights[a][b]))
-                totalAmtOfWeights++
+            for c in range(0,len(weights[a][b])):
+                totalAmtOfWeights+=1
     #grab two random ints for two-point crossover
     b=0
     c=0
-    while(b==c)
+    while(b==c):
         b= random.randInt(0,totalAmtOfWeights)
         c= random.randInt(0,totalAmtOfWeights)
     #find the lower index
@@ -166,9 +250,14 @@ def crossover(neuralNetwork1, neuralNetwork2, nodes_per_layer):
                 counter+=1
     #return child
     return net
+
+#returns the highest fitness score from the score dictionary
 def findMostFit(scoresDictionary):
     scores=scoresDictionary.values()
     return max(scores)
+
+#Takes a scores dictionary and normalizes them to values from
+#0 to 1 and returns said dictionary
 def normalizeScores(scoresDictionary):
     maxVal=findMostFit(scoresDictionary)
     for a in scoresDictionary.keys():
