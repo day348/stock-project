@@ -45,10 +45,10 @@ def inputsForBackProp(tics):
     outputters=[]
     for tic in [tics]:
         #gets the dates and the assosiated close values
-        output_values = pd.read_csv('data\\training\\' + tic + '.csv')
+        output_values = pd.read_csv('data/training/' + tic + '.csv')
         #creates an array of input vectors for a given stock and the training days
         input_values = [0]*len(output_values.index)
-        data = pd.read_csv('data\\normalized_data\\' + tic + '.csv')
+        data = pd.read_csv('data/normalized_data/' + tic + '.csv')
         data = data.set_index('date')
         i = 0
         for date in output_values.date:

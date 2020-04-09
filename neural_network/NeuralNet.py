@@ -134,6 +134,7 @@ class NeuralNet:
     def backProp(self, inputs, targets, learnRate = .01, iterations=1):
         if len(targets) != len(inputs):
             print("invalid size combination for inputs and outputs")
+        learnRate = learnRate / len(targets)
         error = 0
         output = None
         start_error =0
