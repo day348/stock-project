@@ -1,7 +1,7 @@
 import neural_network.NeuralNet as nn
 from data.inputsForBackProp import inputsForBackProp
 from multiprocessing import Pool
-from progressbar import ProgressBar
+from progressbar import ProgressBar 
 import tqdm
 import sys
 import time
@@ -24,12 +24,12 @@ if __name__ == "__main__":
     #create neural network
     network = nn.NeuralNet(ACTIVATION_FUNCTIONS, NODES_PER_LAYER)
     #get tickers 
-    stock_tickers = pd.read_csv('data\\stock_names.csv')['Ticker']
+    stock_tickers = pd.read_csv('data/stock_names.csv')['Ticker']
     #removes tickers wihtout data
     for tic in stock_tickers:
-        if not os.path.exists('data\\training\\' + tic + '.csv'):
+        if not os.path.exists('data/training/' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
-        if not os.path.exists('data\\normalized_data\\' + tic + '.csv'):
+        if not os.path.exists('data/normalized_data/' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
       
     print("loading training data")
