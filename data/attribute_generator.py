@@ -10,7 +10,7 @@ def complete_attributes(data):
     data['average'] = (data['high'] + data['low'] + data['close'] ) / 3
     data['single_day_change'] = data['open'] - data['close']
 
-    #differnce between the last 2 day's averages
+    #differnce between the last 2 day's closes
     dtd = [0]
     for i in range(len(data)-1):
         dtd = dtd + [data.iloc[i+1]['close']-data.iloc[i]['close']]

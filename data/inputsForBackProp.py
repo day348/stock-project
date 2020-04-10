@@ -63,11 +63,42 @@ def inputsForBackProp(tics):
             
 
         inputters.append(input_values)
-        outputters.append(output_values['close'].to_numpy())
+        outputters.append(output_values['dayToDay'].to_numpy())
     #map tics to their respective lists of inputs and outputs
     input_dict=dict(zip([tics], inputters))
     output_dict=dict(zip([tics],outputters))
     #return list of both dicts
     return [input_dict, output_dict]
     
-      
+#given a set of tickers it returns two dictionaries one mapping 
+#a stock to its input vectors and the other mapping a stock to 
+#its ouput values
+def inputsForTesting(tics):
+    inputters=[]
+    outputters=[]
+    for tic in [tics]:
+        #gets the dates and the assosiated close values
+        output_values = pd.read_csv('data/testing/' + tic + '.csv')
+        #creates an array of input vectors for a given stock and the training days
+        input_values = [0]*len(output_values.index)
+        data = pd.read_csv('data/normalized_data/' + tic + '.csv')
+        data = data.set_index('date')
+        i = 0
+        for date in output_values.date:
+            input = getInputs(tic,date,data)
+            #catches error if not enough previous days
+            if type(input) ==type(-1):
+                output_values = output_values[output_values.date != date]
+                input_values = input_values[:-1]
+            else:
+                input_values[i] = input
+                i = i + 1
+            
+
+        inputters.append(input_values)
+        outputters.append(output_values['dayToDay'].to_numpy())
+    #map tics to their respective lists of inputs and outputs
+    input_dict=dict(zip([tics], inputters))
+    output_dict=dict(zip([tics],outputters))
+    #return list of both dicts
+    return [input_dict, output_dict]
