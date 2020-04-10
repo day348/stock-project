@@ -24,7 +24,7 @@ class NeuralNet:
 
         #checks gives correct weight info as input
         num_layers = len(nodes_per_layer)
-        self.weights =  [np.random.rand(nodes_per_layer[k],nodes_per_layer[k+1])  for k in range(num_layers-1) ]
+        self.weights =  [np.random.rand(nodes_per_layer[k],nodes_per_layer[k+1])/(nodes_per_layer[k]*nodes_per_layer[k+1])  for k in range(num_layers-1) ]
         
         #checks activation functions
         if len(activation_funcs) == len(self.weights):
@@ -39,7 +39,7 @@ class NeuralNet:
     #given an input to the neuralnet calculates the output
     #   currently does not edit the last output class variable 
     #   so that there are no lock issues with parralizations
-    def calculateOutput(self, input, rando = None):
+    def calculateOutput(self, input, rando = None,single_input = False):
         b=len(self.weights);
         listToBeReturned=[]
         other=[]
@@ -58,6 +58,8 @@ class NeuralNet:
         listToBeReturned.append(input)
         # self.last_output = [listToBeReturned, other]
         # self.last_out_val = other[-1][-1] 
+        if single_input:
+            return other[-1][-1]
         return [listToBeReturned, other]
 
     #determines the change of weights for a specific calculation
@@ -163,8 +165,8 @@ class NeuralNet:
            
             deltaWeights = results[0][0][0]
             for i in range(len(results)):
+                error = error + results[i][1]
                 for j in range(len(results[i][0])):
-                    error = error + results[i][1]
                     for l in range(len(results[i][0][j])):
                         deltaWeights[l] = deltaWeights[l] + results[i][0][j][l]
             # print(self.weights)
@@ -180,14 +182,14 @@ class NeuralNet:
 
     def calcWeights(self, inputs, targets,learnRate, step,j):
         delta = [0]*step
-        error = 0
+        errort = 0
         for i in range(step):
             if i+j*step >= len(inputs):
                 return delta[0:i]
             output = self.calculateOutput(inputs[i+j*step])
             delta[i] = self.gdBackprop(output,learnRate, targets[i+j*step])
-            error = error + self.sqErrorCalc(targets[i+j*step], output[-1][-1][-1])
-        return [delta, error]
+            errort = errort + np.abs(targets[i+j*step]- output[-1][-1][-1])
+        return [delta, errort]
         
 
     def test(self, i):
