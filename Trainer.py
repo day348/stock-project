@@ -13,9 +13,9 @@ import os
 
 #setup
 NODES_PER_LAYER = [380,100,50,50,20,1]
-ACTIVATION_FUNCTIONS = [4,4,4,4,3]
-NUM_ITERATIONS = 10
-LEARN_RATE = 10
+ACTIVATION_FUNCTIONS = [7,7,7,4,3]
+NUM_ITERATIONS = 1000
+LEARN_RATE = .01
 
 """
 0 : TanH        1 : arcTan      2 : Elu
@@ -45,7 +45,6 @@ if __name__ == "__main__":
             stock_tickers = stock_tickers[stock_tickers != tic]
         if not os.path.exists('data/normalized_data/' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
-      
     print("loading training data")
     #get input training dictionaries 
     loading_time = -time.time()
@@ -67,6 +66,7 @@ if __name__ == "__main__":
     print("Begining Training with ", NUM_ITERATIONS, " iterations")
     print("\tnodes per layer: ", NODES_PER_LAYER)
     print("\tactivation functions: ", ACTIVATION_FUNCTIONS)
+    print("Learning Rate: ", LEARN_RATE)
     print("\tnumber of stocks: ", len(stock_tickers))
     print()
 
@@ -84,7 +84,14 @@ if __name__ == "__main__":
                 training_errors[i] = training_errors[i] + (network.backProp(inputs[tic], outputs[tic], learnRate=LEARN_RATE)[0]/len(outputs[tic]))
             except:
                 print("failed on iteration ", i, ' on stock ', tic)
+                print('starting weights')
+                print(start_weights)
+                print('Current weights')
                 print(network.weights)
+                print('error timeline:')
+                print(training_errors)
+                quit()
+                
             backPropTime = backPropTime + time.time()
             #debugger test prints
             """ prediction = network.calculateOutput(inputs[tic][-10])[-1][-1][0]
@@ -98,6 +105,7 @@ if __name__ == "__main__":
         training_errors[i] = (training_errors[i] / len(stock_tickers.index))*100
         #error editors and prints
         print('average prediction error on iteration', i+1, ':',training_errors[i], '%')
+        LEARN_RATE = LEARN_RATE+1
     time_per_iteration = time_per_iteration / NUM_ITERATIONS
     time_per_stock = time_per_iteration / len(stock_tickers)
     end_weights = network.weights
