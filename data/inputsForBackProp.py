@@ -7,7 +7,10 @@ def getInputs(tic, date, inputData):
     listOfNums=[x for x in range(0,len(listOfDates))]
     datesToNums= dict(zip(listOfDates, listOfNums))
     new_dict = dict([(value, key) for key, value in datesToNums.items()]) 
-    beginningIndex= datesToNums[date]
+    try:
+        beginningIndex= datesToNums[date]
+    except:
+        return -1
     endIndex=beginningIndex-20
     if(endIndex<0):
         return -1

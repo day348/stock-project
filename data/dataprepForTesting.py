@@ -35,6 +35,8 @@ def exportToCSVTestingAndTraining(path,tic):
 
 if __name__ == "__main__":
     tickers = pd.read_csv('data/stock_names.csv')['Ticker'] #gets stock Tickers 
+    tickers = tickers[:1]
+    print(tickers)
     executor = concurrent.futures.ProcessPoolExecutor(10)
     #runs the update stock tic method for each ticker
     futures = [executor.submit(exportToCSVTestingAndTraining,'data/normalized_data/' ,tic,) for tic in tickers]

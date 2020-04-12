@@ -80,8 +80,8 @@ def normalize(path, tic):
     return dataframe
 
 
-getPath = 'data\\historical_stock_data\\'
-savePath = 'data\\normalized_data\\'
+getPath = 'data/historical_stock_data/'
+savePath = 'data/normalized_data/'
 
 def update_stock(tic):
     data = normalize(getPath, tic)
@@ -91,8 +91,7 @@ def update_stock(tic):
     return(1)
 
 if __name__ == "__main__":
-    tickers = pd.read_csv('data\\stock_names.csv')['Ticker'] #gets stock Tickers 
-    print(tickers.iloc[1])
+    tickers = pd.read_csv('data/stock_names.csv')['Ticker'] #gets stock Tickers 
     executor = concurrent.futures.ProcessPoolExecutor(10)
     #runs the update stock tic method for each ticker
     futures = [executor.submit(update_stock, tic) for tic in tickers]

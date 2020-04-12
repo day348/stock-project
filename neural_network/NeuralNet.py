@@ -24,7 +24,7 @@ class NeuralNet:
 
         #checks gives correct weight info as input
         num_layers = len(nodes_per_layer)
-        self.weights =  [np.random.rand(nodes_per_layer[k],nodes_per_layer[k+1])/(nodes_per_layer[k]*nodes_per_layer[k+1])  for k in range(num_layers-1) ]
+        self.weights =  [np.random.rand(nodes_per_layer[k],nodes_per_layer[k+1])/(nodes_per_layer[k+1])  for k in range(num_layers-1) ]
         
         #checks activation functions
         if len(activation_funcs) == len(self.weights):
@@ -52,6 +52,9 @@ class NeuralNet:
                 other.append(output)
             except ValueError: 
                 print("Matrices were invalid dimensions or...")
+            except Exception as inst:
+                print('Likely math range error')
+                print(inst)
             active= self.activation_functions[a]
             input = af.func(active,output,rando = rando)
  
@@ -136,6 +139,10 @@ class NeuralNet:
     def backProp(self, inputs, targets, learnRate = .01, iterations=1):
         if len(targets) != len(inputs):
             print("invalid size combination for inputs and outputs")
+            print('input lengths')
+            print(len(inputs))
+            print('targets length')
+            print(len(targets))
         learnRate = learnRate / len(targets)
         error = 0
         output = None
