@@ -14,7 +14,7 @@ for tic in stock_tickers:
         skip = True
         pass
     if skip == False:
-        if len(temp.index) <20:
+        if len(temp.index) <40:
             os.remove('data/normalized_data/' + tic + '.csv')
             os.remove('data/testing/'+ tic + '.csv')
             os.remove('data/training/'+ tic + '.csv')
