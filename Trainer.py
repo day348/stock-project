@@ -3,6 +3,7 @@ from data.inputsForBackProp import inputsForBackProp
 from data.inputsForBackProp import inputsForTesting
 from multiprocessing import Pool
 from progressbar import ProgressBar 
+from training.testing import test
 import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
@@ -12,9 +13,9 @@ import pandas as pd
 import os
 
 #setup
-NODES_PER_LAYER = [380,100,50,50,20,1]
-ACTIVATION_FUNCTIONS = [7,7,7,4,3]
-NUM_ITERATIONS = 1000
+NODES_PER_LAYER = [380,100,50,20,1]
+ACTIVATION_FUNCTIONS = [7,4,4,3]
+NUM_ITERATIONS = 10
 LEARN_RATE = .01
 
 """
@@ -46,6 +47,7 @@ if __name__ == "__main__":
         if not os.path.exists('data/normalized_data/' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
     print("loading training data")
+    stock_tickers = stock_tickers[:2]
     #get input training dictionaries 
     loading_time = -time.time()
     #spawns a process for each stock data that needs to be loaded 
@@ -70,45 +72,57 @@ if __name__ == "__main__":
     print("\tnumber of stocks: ", len(stock_tickers))
     print()
 
-    #this loop trains the neural network
-    start_weights = network.weights
-    pbar = ProgressBar()
-    for i in pbar(range(NUM_ITERATIONS)):
-        training_errors[i] = 0
-        time_taken = 0
-        for tic in stock_tickers:
-            #print(tic,len(inputs[tic]), len(outputs[tic]))
-            backPropTime = -time.time()
-            #back propigation call
-            try:
-                training_errors[i] = training_errors[i] + (network.backProp(inputs[tic], outputs[tic], learnRate=LEARN_RATE)[0]/len(outputs[tic]))
-            except:
-                print("failed on iteration ", i, ' on stock ', tic)
-                print('starting weights')
-                print(start_weights)
-                print('Current weights')
-                print(network.weights)
-                print('error timeline:')
-                print(training_errors)
-                quit()
+    # #this loop trains the neural network
+    # start_weights = network.weights
+    # pbar = ProgressBar()
+    # messedUp = False 
+    # for i in pbar(range(NUM_ITERATIONS)):
+    #     training_errors[i] = 0
+    #     time_taken = 0
+    #     pbarInner = ProgressBar().start()
+    #     for tic in stock_tickers:
+    #         #print(tic,len(inputs[tic]), len(outputs[tic]))
+    #         backPropTime = -time.time()
+    #         #back propigation call
+    #         try:
+    #             training_errors[i] = training_errors[i] + (network.backProp(inputs[tic], outputs[tic], learnRate=LEARN_RATE)[0]/len(outputs[tic]))
+    #         except:
+    #             print("failed on iteration ", i, ' on stock ', tic)
+    #             print('starting weights')
+    #             print(start_weights)
+    #             print('Current weights')
+    #             print(network.weights)
+    #             print('error timeline:')
+    #             print(training_errors)
+    #             print('stock data')
+    #             print(inputs[tic])
+    #             print(outputs[tic])
+    #             messedUp = True
+    #             break
+
                 
-            backPropTime = backPropTime + time.time()
-            #debugger test prints
-            """ prediction = network.calculateOutput(inputs[tic][-10])[-1][-1][0]
-            goal = outputs[tic][-10]
-            print('time taken: ', backPropTime)
-            print('recent prediction, actual: ',goal*100,'% prediction:', prediction*100, '%') """
-            #counters
-            time_taken = time_taken + backPropTime
-        #counters
-        time_per_iteration = time_taken + time_per_iteration
-        training_errors[i] = (training_errors[i] / len(stock_tickers.index))*100
-        #error editors and prints
-        print('average prediction error on iteration', i+1, ':',training_errors[i], '%')
-        LEARN_RATE = LEARN_RATE+1
-    time_per_iteration = time_per_iteration / NUM_ITERATIONS
-    time_per_stock = time_per_iteration / len(stock_tickers)
-    end_weights = network.weights
+    #         backPropTime = backPropTime + time.time()
+    #         #debugger test prints
+    #         """ prediction = network.calculateOutput(inputs[tic][-10])[-1][-1][0]
+    #         goal = outputs[tic][-10]
+    #         print('time taken: ', backPropTime)
+    #         print('recent prediction, actual: ',goal*100,'% prediction:', prediction*100, '%') """
+    #         #counters
+    #         time_taken = time_taken + backPropTime
+    #         pbarInner.update(i+1)
+    #     pbarInner.finish()
+    #     #counters
+    #     time_per_iteration = time_taken + time_per_iteration
+    #     training_errors[i] = (training_errors[i] / len(stock_tickers.index))*100
+    #     #error editors and prints
+    #     print('average prediction error on iteration', i+1, ':',training_errors[i], '%')
+    #     if messedUp:
+    #         print('error casued early termination, ending training early...\n')
+    #         break
+
+    # time_per_iteration = time_per_iteration / NUM_ITERATIONS
+    # time_per_stock = time_per_iteration / len(stock_tickers)
+    # end_weights = network.weights
 
 
 
@@ -128,23 +142,10 @@ if __name__ == "__main__":
         inputs.update(results[i][0])
         outputs.update(results[i][1])
     print('\nStarting testing\n')
-    # This loop tests the neural network
-    testing_errors = [0]*len(stock_tickers)
-    j = -1
-    pbar = ProgressBar()
-    for tic in stock_tickers:
-        j = j+1
-        for i in range(len(inputs[tic])):
-            prediction = network.calculateOutput(inputs[tic][i],single_input=True)
-            goal = outputs[tic][i]
-            testing_errors[j] = testing_errors[j] + np.abs(prediction - goal)
-        testing_errors[j] = testing_errors[j]*100/len(inputs[tic])
-        #print('Error for ',tic, ': ', testing_errors[j]*100, '%')
-    print('total testing average error: ', np.average(testing_errors), '%')
-    avg_test_error = np.average(testing_errors)
-    temp = pd.DataFrame({'testing errors':testing_errors})
-    testing_errors = temp.join(stock_tickers)
-    testing_errors.set_index('Ticker')
+    # Test the final network
+    print('about to test')
+    test(network,inputs,outputs,stock_tickers)
+    print('done testing')
     print('\nSaving Results...')
     #saves results
     #creates new test folder
