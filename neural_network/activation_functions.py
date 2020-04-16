@@ -18,7 +18,7 @@ import math
 #general activation function usage
 #takes which function calling and input value
 
-def func(selector, output, rando=None, deriv = False):
+def func(selector, output, rando=1, deriv = False):
     #activation functions and all their derivatives
     def activationSigmoid( input):
         for a in range(0,len(input)):

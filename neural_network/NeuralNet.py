@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import random
 import neural_network.activation_functions as af
@@ -22,9 +21,10 @@ class NeuralNet:
     #                               corresponding to each layer of the network
     def __init__(self,activation_funcs, nodes_per_layer):
 
+        #gives normal distrobution for starting weights
         #checks gives correct weight info as input
         num_layers = len(nodes_per_layer)
-        self.weights =  [np.random.rand(nodes_per_layer[k],nodes_per_layer[k+1])/(nodes_per_layer[k+1])  for k in range(num_layers-1) ]
+        self.weights =  [np.random.normal(0,4*np.sqrt(2/(nodes_per_layer[k]+nodes_per_layer[k+1])),(nodes_per_layer[k],nodes_per_layer[k+1])) for k in range(num_layers-1) ]
         
         #checks activation functions
         if len(activation_funcs) == len(self.weights):

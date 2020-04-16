@@ -21,4 +21,4 @@ def test(network,inputs,outputs,stock_tickers):
     avg_test_error = np.average(testing_errors)
     temp = pd.DataFrame({'testing errors':testing_errors})
     testing_errors = temp.join(stock_tickers)
-    return testing_errors.set_index('Ticker')
+    return testing_errors.set_index('Ticker'), avg_test_error
