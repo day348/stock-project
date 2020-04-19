@@ -1,4 +1,5 @@
 import math  
+import numpy
 #general activation function usage
 #takes which function calling and input value
 

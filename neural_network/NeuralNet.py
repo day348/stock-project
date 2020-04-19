@@ -24,7 +24,7 @@ class NeuralNet:
         #gives normal distrobution for starting weights
         #checks gives correct weight info as input
         num_layers = len(nodes_per_layer)
-        self.weights =  [np.random.normal(0,4*np.sqrt(2/(nodes_per_layer[k]+nodes_per_layer[k+1])),(nodes_per_layer[k],nodes_per_layer[k+1])) for k in range(num_layers-1) ]
+        self.weights =  [np.random.normal(0,np.sqrt(2/(nodes_per_layer[k]+nodes_per_layer[k+1])),(nodes_per_layer[k],nodes_per_layer[k+1])) for k in range(num_layers-1) ]
         
         #checks activation functions
         if len(activation_funcs) == len(self.weights):
