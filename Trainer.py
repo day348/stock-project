@@ -1,5 +1,5 @@
 import neural_network.NeuralNet as nn
-from data.inputsForBackProp import inputsForBackProp
+from data.inputsForBackProp import load_inputs
 from data.inputsForBackProp import inputsForTesting
 from multiprocessing import Pool
 from progressbar import ProgressBar 
@@ -13,10 +13,11 @@ import pandas as pd
 import os
 
 #setup
-NODES_PER_LAYER = [380,100,50,1]
-ACTIVATION_FUNCTIONS = [4,4,3]
-NUM_ITERATIONS = 10
+NODES_PER_LAYER = [95,1]
+ACTIVATION_FUNCTIONS = [7]
+NUM_ITERATIONS = 1
 LEARN_RATE = .01
+MAX_STOCKS = 1
 
 """
 0 : TanH        1 : arcTan      2 : Elu
@@ -47,19 +48,12 @@ if __name__ == "__main__":
         if not os.path.exists('data/normalized_data/' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
     print("loading training data")
+    #sets stock numnber limit for easy testing
+    if MAX_STOCKS > 0:
+        stock_tickers = stock_tickers[:MAX_STOCKS]
     #get input training dictionaries 
     loading_time = -time.time()
-    #spawns a process for each stock data that needs to be loaded 
-    pool = Pool()
-    results = list(tqdm.tqdm(pool.imap(inputsForBackProp, stock_tickers), total=len(stock_tickers)))
-    pool.close()
-    pool.join()
-    inputs = {}
-    outputs = {}
-    for i in range(len(results)):
-        inputs.update(results[i][0])
-        outputs.update(results[i][1])
-
+    inputs, outputs = load_inputs(stock_tickers)
     loading_time = loading_time+time.time()
     #print updates
     print("time spent loading: ", loading_time)
@@ -70,6 +64,7 @@ if __name__ == "__main__":
     print("Learning Rate: ", LEARN_RATE)
     print("\tnumber of stocks: ", len(stock_tickers))
     print()
+
 
     #this loop trains the neural network
     start_weights = network.weights
@@ -110,8 +105,8 @@ if __name__ == "__main__":
         if messedUp:
             print('error casued early termination, ending training early...\n')
             break
-
-    time_per_iteration = time_per_iteration / NUM_ITERATIONS
+    if(NUM_ITERATIONS != 0):
+        time_per_iteration = time_per_iteration / NUM_ITERATIONS
     time_per_stock = time_per_iteration / len(stock_tickers)
     end_weights = network.weights
 
@@ -121,59 +116,59 @@ if __name__ == "__main__":
     #gets testing data
     print("\nloading testing data")
     #get input testing dictionaries 
-    loading_time = -time.time()
-    #spawns a process for each stock data that needs to be loaded 
-    pool = Pool()
-    results = list(tqdm.tqdm(pool.imap(inputsForTesting, stock_tickers), total=len(stock_tickers)))
-    pool.close()
-    pool.join()
-    inputs = {}
-    outputs = {}
-    for i in range(len(results)):
-        inputs.update(results[i][0])
-        outputs.update(results[i][1])
+    inputs, ouputs = load_inputs(stock_tickers, testing=True)
     print('\nStarting testing\n')
     # Test the final network
-    testing_errors, avg_test_error =  test(network,inputs,outputs,stock_tickers)
+    testing_errors, avg_test_error, counters =  test(network,inputs,outputs,stock_tickers)
+    
+    def save_results():
+        #creates new test folder
+        folder_created = False
+        test_folder = None
+        test_num = 0
+        while not folder_created:
+            test_num = test_num + 1
+            try:
+                test_folder = 'test_results/test' + str(test_num)
+                os.mkdir(test_folder)
+                folder_created = True
+            except FileExistsError:
+                pass
+        #saves start and end wieghts
+        np.save(test_folder + '/start_weights',start_weights)
+        np.save(test_folder + '/end_weights',end_weights)
+        #saves testing and training data 
+        np.save(test_folder + '/training_error_progression', training_errors)
+        testing_errors.to_csv(test_folder + '/testing_errors.csv')
+        #creates and saves overview
+        overview_string = ''
+        overview_string = overview_string + 'This training aims to predict the day to day change of stocks\n'
+        overview_string = overview_string + "\ttraining with " +  str(NUM_ITERATIONS) + " iterations\n"
+        overview_string = overview_string + "\tnodes per layer: " + str(NODES_PER_LAYER) + '\n'
+        overview_string = overview_string + "\tactivation functions: " +  str(ACTIVATION_FUNCTIONS) + "\n"
+        overview_string = overview_string + "\tnumber of stocks: " + str(len(stock_tickers)) + '\n'
+        overview_string = overview_string + '\nStatistics:\n'
+        overview_string = overview_string + '\tbackprop time per stock= ' + str(time_per_stock) + '\n'
+        overview_string = overview_string + '\tbackprop time per iteration = ' + str(time_per_iteration) + '\n'
+        overview_string = overview_string + '\tstart training error = ' + str(training_errors[0])+ '%\n'
+        overview_string = overview_string + '\tend training error = ' + str(training_errors[-1])+ '%\n'
+        overview_string = overview_string + "\taverage testing error = " + str(avg_test_error)+ "%\n"
+        overview_string = overview_string + "\tpercent postive: " + str(counters[0])+ '\n'
+        overview_string = overview_string + "\ttrue positives: " + str(counters[1])+ '\n'
+        overview_string = overview_string + "\tfalse positives: " + str(counters[2])+ '\n'
+        overview_string = overview_string + "\ttrue negatives: " + str(counters[3])+ '\n'
+        overview_string = overview_string + "\tfalse negatives: " + str(counters[4])+ '\n'
+        #write file
+        overview_file = open(test_folder + '/results_overview', "w")
+        overview_file.write(overview_string)
+        overview_file.close()
+        print(overview_string)
+        #plot training progression
+        plt.plot(range(len(training_errors)), training_errors)
+        plt.xlabel("iteration")
+        plt.ylabel('% Error')
+        plt.savefig(test_folder + '/training_progression.png')
     print('\nSaving Results...')
     #saves results
-    #creates new test folder
-    folder_created = False
-    test_folder = None
-    test_num = 0
-    while not folder_created:
-        test_num = test_num + 1
-        try:
-            test_folder = 'test_results/test' + str(test_num)
-            os.mkdir(test_folder)
-            folder_created = True
-        except FileExistsError:
-            pass
-    #saves start and end wieghts
-    np.save(test_folder + '/start_weights',start_weights)
-    np.save(test_folder + '/end_weights',end_weights)
-    #saves testing and training data 
-    np.save(test_folder + '/training_error_progression', training_errors)
-    testing_errors.to_csv(test_folder + '/testing_errors.csv')
-    #creates and saves overview
-    overview_string = overview_string + 'This training aims to predict the day to day change of stocks\n'
-    overview_string = overview_string + "\ttraining with " +  str(NUM_ITERATIONS) + " iterations\n"
-    overview_string = overview_string + "\tnodes per layer: " + str(NODES_PER_LAYER) + '\n'
-    overview_string = overview_string + "\tactivation functions: " +  str(ACTIVATION_FUNCTIONS) + "\n"
-    overview_string = overview_string + "\tnumber of stocks: " + str(len(stock_tickers)) + '\n'
-    overview_string = overview_string + '\nStatistics:\n'
-    overview_string = overview_string + '\tbackprop time per stock= ' + str(time_per_stock) + '\n'
-    overview_string = overview_string + '\tbackprop time per iteration = ' + str(time_per_iteration) + '\n'
-    overview_string = overview_string + '\tstart training error = ' + str(training_errors[0])+ '%\n'
-    overview_string = overview_string + '\tend training error = ' + str(training_errors[-1])+ '%\n'
-    overview_string = overview_string + "\taverage testing error = " + str(avg_test_error)+ "%\n"
-    #write file
-    overview_file = open(test_folder + '/results_overview', "w")
-    overview_file.write(overview_string)
-    overview_file.close()
-    #plot training progression
-    plt.plot(range(len(training_errors)), training_errors)
-    plt.xlabel("iteration")
-    plt.ylabel('% Error')
-    plt.savefig(test_folder + '/training_progression.png')
+    save_results()
     print('done!')
