@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from progressbar import ProgressBar
+import time
+import tqdm
+from multiprocessing import Pool
 
 def getInputs(tic, date, inputData): 
     listOfDates= list(inputData.index)
@@ -19,25 +22,26 @@ def getInputs(tic, date, inputData):
         relevantDates.append(new_dict[i])
     output=[]
     for i in relevantDates:
-        output.append(inputData['low'][i])
-        output.append(inputData['high'][i])
-        output.append(inputData['average'][i])
-        output.append(inputData['volume'][i])
         output.append(inputData['close'][i])
-        output.append(inputData['open'][i])
         output.append(inputData['range'][i])
-        output.append(inputData['twelveDay'][i])
-        output.append(inputData['twentySixDay'][i])
-        output.append(inputData['volumeEMA'][i])
         output.append(inputData['singleDay'][i])
         output.append(inputData['dayToDay'][i])
-        output.append(inputData['fiftyTwoDayHigh'][i])
-        output.append(inputData['fiftyTwoWeekHigh'][i])
-        output.append(inputData['fiftyTwoDayLow'][i])
-        output.append(inputData['fiftyTwoWeekLow'][i])
-        output.append(inputData['fiftyTwoWeekAverage'][i])
-        output.append(inputData['fiftyTwoDayStandDev'][i])
-        output.append(inputData['fiftyTwoWeekStandDev'][i])
+        if i == relevantDates[-1]:
+            output.append(inputData['low'][i])
+            output.append(inputData['high'][i])
+            output.append(inputData['average'][i])
+            output.append(inputData['open'][i])
+            output.append(inputData['volume'][i])
+            output.append(inputData['twelveDay'][i])
+            output.append(inputData['twentySixDay'][i])
+            output.append(inputData['volumeEMA'][i])
+            output.append(inputData['fiftyTwoDayHigh'][i])
+            output.append(inputData['fiftyTwoWeekHigh'][i])
+            output.append(inputData['fiftyTwoDayLow'][i])
+            output.append(inputData['fiftyTwoWeekLow'][i])
+            output.append(inputData['fiftyTwoWeekAverage'][i])
+            output.append(inputData['fiftyTwoDayStandDev'][i])
+            output.append(inputData['fiftyTwoWeekStandDev'][i])
     return np.array(output)
     
 #given a set of tickers it returns two dictionaries one mapping 
@@ -66,7 +70,7 @@ def inputsForBackProp(tics):
             
 
         inputters.append(input_values)
-        outputters.append(output_values['dayToDay'].to_numpy())
+        outputters.append(output_values['Up or Down'].to_numpy())
     #map tics to their respective lists of inputs and outputs
     input_dict=dict(zip([tics], inputters))
     output_dict=dict(zip([tics],outputters))
@@ -99,9 +103,26 @@ def inputsForTesting(tics):
             
 
         inputters.append(input_values)
-        outputters.append(output_values['dayToDay'].to_numpy())
+        outputters.append(output_values['Up or Down'].to_numpy())
     #map tics to their respective lists of inputs and outputs
     input_dict=dict(zip([tics], inputters))
     output_dict=dict(zip([tics],outputters))
     #return list of both dicts
     return [input_dict, output_dict]
+
+def load_inputs(tickers, testing = False):
+    #get input training dictionaries 
+    #spawns a process for each stock data that needs to be loaded 
+    pool = Pool()
+    if not testing:
+        results = list(tqdm.tqdm(pool.imap(inputsForBackProp, tickers), total=len(tickers)))
+    else:
+        results = list(tqdm.tqdm(pool.imap(inputsForTesting, tickers), total=len(tickers)))
+    pool.close()
+    pool.join()
+    inputs = {}
+    outputs = {}
+    for i in range(len(results)):
+        inputs.update(results[i][0])
+        outputs.update(results[i][1])
+    return inputs, outputs

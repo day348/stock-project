@@ -89,8 +89,14 @@ def func(selector, output, rando=1, deriv = False):
     def activationSigmoid(input):
         for a in range(0,len(input)):
             z=input[a]
+            if z == 0:
+                z = .00001
             z=(-1)*z
-            input[a]= 1/(1+math.exp(z))
+            try:
+                input[a]= 1/(1+math.exp(z))
+            except: 
+                print("overloading ouput to Sigmoid")
+                input[a] = 0
         return input
     def derivSigmoid(input):
         z=activationSigmoid(input)
