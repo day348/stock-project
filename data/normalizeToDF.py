@@ -8,7 +8,7 @@ def percentChange(base, value):
     if(base!=0):
         diff=value-base
         div=diff/base
-        div = div * 100
+        div = div * 10
         return div
     else:
         raise ZeroDivisionError

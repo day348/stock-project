@@ -26,7 +26,6 @@ def test(network,inputs,outputs,stock_tickers):
                 elif prediction < .25:
                     counters[4] = counters[4] + 1
             else:
-                print("got in")
                 if prediction < .25:
                     counters[3] = counters[3] + 1
                 elif prediction > .75:

@@ -5,7 +5,7 @@ import time
 import tqdm
 from multiprocessing import Pool
 
-def getInputs(tic, date, inputData): 
+def getInputs(date, inputData): 
     listOfDates= list(inputData.index)
     listOfNums=[x for x in range(0,len(listOfDates))]
     datesToNums= dict(zip(listOfDates, listOfNums))
@@ -59,7 +59,7 @@ def inputsForBackProp(tics):
         data = data.set_index('date')
         i = 0
         for date in output_values.date:
-            input = getInputs(tic,date,data)
+            input = getInputs(date,data)
             #catches error if not enough previous days
             if type(input) ==type(-1):
                 output_values = output_values[output_values.date != date]
