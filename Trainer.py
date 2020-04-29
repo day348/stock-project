@@ -13,10 +13,11 @@ import pandas as pd
 import os
 
 #setup
-NODES_PER_LAYER = [95,1]
-ACTIVATION_FUNCTIONS = [7]
-NUM_ITERATIONS = 1
-LEARN_RATE = .01
+NODES_PER_LAYER = [7,7,1]
+ACTIVATION_FUNCTIONS = [4,7]
+NUM_ITERATIONS = 0
+LEARN_RATE = 1
+#make negative to use all stocks
 MAX_STOCKS = 1
 
 """
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     print("Begining Training with ", NUM_ITERATIONS, " iterations")
     print("\tnodes per layer: ", NODES_PER_LAYER)
     print("\tactivation functions: ", ACTIVATION_FUNCTIONS)
-    print("Learning Rate: ", LEARN_RATE)
+    print("\tLearning Rate: ", LEARN_RATE)
     print("\tnumber of stocks: ", len(stock_tickers))
     print()
 
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     time_per_stock = time_per_iteration / len(stock_tickers)
     end_weights = network.weights
 
-
+    #print(network.weights)
 
     #gets testing data
     print("\nloading testing data")
@@ -134,6 +135,7 @@ if __name__ == "__main__":
             except FileExistsError:
                 pass
         #saves start and end wieghts
+        print(start_weights)
         np.save(test_folder + '/start_weights',start_weights)
         np.save(test_folder + '/end_weights',end_weights)
         #saves testing and training data 

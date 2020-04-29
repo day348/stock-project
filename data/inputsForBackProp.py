@@ -21,27 +21,27 @@ def getInputs(date, inputData):
     for i in range(endIndex, beginningIndex):
         relevantDates.append(new_dict[i])
     output=[]
-    for i in relevantDates:
+    for i in relevantDates[-1:]:
         output.append(inputData['close'][i])
         output.append(inputData['range'][i])
-        output.append(inputData['singleDay'][i])
-        output.append(inputData['dayToDay'][i])
+        """ output.append(inputData['singleDay'][i])
+        output.append(inputData['dayToDay'][i]) """
         if i == relevantDates[-1]:
             output.append(inputData['low'][i])
             output.append(inputData['high'][i])
-            output.append(inputData['average'][i])
-            output.append(inputData['open'][i])
+            """ output.append(inputData['average'][i])
+            output.append(inputData['open'][i]) """
             output.append(inputData['volume'][i])
             output.append(inputData['twelveDay'][i])
             output.append(inputData['twentySixDay'][i])
-            output.append(inputData['volumeEMA'][i])
+            """ output.append(inputData['volumeEMA'][i])
             output.append(inputData['fiftyTwoDayHigh'][i])
             output.append(inputData['fiftyTwoWeekHigh'][i])
             output.append(inputData['fiftyTwoDayLow'][i])
             output.append(inputData['fiftyTwoWeekLow'][i])
             output.append(inputData['fiftyTwoWeekAverage'][i])
             output.append(inputData['fiftyTwoDayStandDev'][i])
-            output.append(inputData['fiftyTwoWeekStandDev'][i])
+            output.append(inputData['fiftyTwoWeekStandDev'][i]) """
     return np.array(output)
     
 #given a set of tickers it returns two dictionaries one mapping 
@@ -92,7 +92,7 @@ def inputsForTesting(tics):
         data = data.set_index('date')
         i = 0
         for date in output_values.date:
-            input = getInputs(tic,date,data)
+            input = getInputs(date,data)
             #catches error if not enough previous days
             if type(input) ==type(-1):
                 output_values = output_values[output_values.date != date]

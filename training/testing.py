@@ -8,6 +8,8 @@ def test(network,inputs,outputs,stock_tickers):
     j = -1
     pbar = ProgressBar()
     counters = [0]*6
+    num1 = 0
+    num0 = 0
     for tic in stock_tickers:
         j = j+1
         for i in range(len(inputs[tic])):
@@ -23,16 +25,22 @@ def test(network,inputs,outputs,stock_tickers):
                 counters[0] = counters[0] + 1
                 if prediction > .75:
                     counters[1] = counters[1] + 1
+                    num1 = num1 +1 
                 elif prediction < .25:
+                    num0 = num0 +1 
                     counters[4] = counters[4] + 1
             else:
                 if prediction < .25:
                     counters[3] = counters[3] + 1
+                    num0 = num0 +1 
                 elif prediction > .75:
+                    num1 = num1 +1 
                     counters[2] = counters[2] + 1
-            #print("goal: ", goal, " Prediction: ", prediction)
+            print("goal: ", goal, " Prediction: ", prediction)
             testing_errors[j] = testing_errors[j] + np.abs(prediction - goal)
             #TO DO: amount in the right direction
+        if(num0 > len(inputs[tic])*.95 or num1 > len(inputs[tic])*.95 ):
+            print("converged to constant solution. num 0:", num0, " num 1: ", num1)
 
         testing_errors[j] = testing_errors[j]*100/len(inputs[tic])
         #print('Error for ',tic, ': ', testing_errors[j]*100, '%')
