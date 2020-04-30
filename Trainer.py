@@ -13,12 +13,12 @@ import pandas as pd
 import os
 
 #setup
-NODES_PER_LAYER = [7,1]
+NODES_PER_LAYER = [17,1]
 ACTIVATION_FUNCTIONS = [7]
 NUM_ITERATIONS = 10
-LEARN_RATE = .1
+LEARN_RATE = .01
 #make negative to use all stocks
-MAX_STOCKS = 1
+MAX_STOCKS = 100
 
 """
 0 : TanH        1 : arcTan      2 : Elu

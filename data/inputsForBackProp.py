@@ -6,6 +6,10 @@ import tqdm
 from multiprocessing import Pool
 import tqdm
 
+TRAININGFOLDER='data/training/training+03/'
+TESTINGFOLDER='data/testing/testing+03/'
+COLUMNNAME= "1or0"
+
 def getInputs(date, inputData): 
     listOfDates= list(inputData.index)
     listOfNums=[x for x in range(0,len(listOfDates))]
@@ -22,12 +26,12 @@ def getInputs(date, inputData):
     for i in range(endIndex, beginningIndex):
         relevantDates.append(new_dict[i])
     output=[]
-    for i in relevantDates[-1:]:
+    for i in relevantDates[-5:]:
         output.append(inputData['close'][i])
-        output.append(inputData['range'][i])
-        """ output.append(inputData['singleDay'][i])
-        output.append(inputData['dayToDay'][i]) """
         if i == relevantDates[-1]:
+            output.append(inputData['range'][i])
+            output.append(inputData['singleDay'][i])
+            output.append(inputData['dayToDay'][i])
             output.append(inputData['low'][i])
             output.append(inputData['high'][i])
             """ output.append(inputData['average'][i])
@@ -35,14 +39,14 @@ def getInputs(date, inputData):
             output.append(inputData['volume'][i])
             output.append(inputData['twelveDay'][i])
             output.append(inputData['twentySixDay'][i])
-            """ output.append(inputData['volumeEMA'][i])
+            output.append(inputData['volumeEMA'][i])
             output.append(inputData['fiftyTwoDayHigh'][i])
-            output.append(inputData['fiftyTwoWeekHigh'][i])
+            """ output.append(inputData['fiftyTwoWeekHigh'][i]) """
             output.append(inputData['fiftyTwoDayLow'][i])
-            output.append(inputData['fiftyTwoWeekLow'][i])
-            output.append(inputData['fiftyTwoWeekAverage'][i])
+            """ output.append(inputData['fiftyTwoWeekLow'][i])
+            output.append(inputData['fiftyTwoWeekAverage'][i]) """
             output.append(inputData['fiftyTwoDayStandDev'][i])
-            output.append(inputData['fiftyTwoWeekStandDev'][i]) """
+            """ output.append(inputData['fiftyTwoWeekStandDev'][i]) """
     return np.array(output)
     
 #given a set of tickers it returns two dictionaries one mapping 
@@ -53,7 +57,7 @@ def inputsForBackProp(tics):
     outputters=[]
     for tic in [tics]:
         #gets the dates and the assosiated close values
-        output_values = pd.read_csv('data/training/' + tic + '.csv')
+        output_values = pd.read_csv(TRAININGFOLDER + tic + '.csv')
         #creates an array of input vectors for a given stock and the training days
         input_values = [0]*len(output_values.index)
         data = pd.read_csv('data/normalized_data/' + tic + '.csv')
@@ -71,7 +75,7 @@ def inputsForBackProp(tics):
             
 
         inputters.append(input_values)
-        outputters.append(output_values['Up or Down'].to_numpy())
+        outputters.append(output_values[COLUMNNAME].to_numpy())
     #map tics to their respective lists of inputs and outputs
     input_dict=dict(zip([tics], inputters))
     output_dict=dict(zip([tics],outputters))
@@ -86,7 +90,7 @@ def inputsForTesting(tics):
     outputters=[]
     for tic in [tics]:
         #gets the dates and the assosiated close values
-        output_values = pd.read_csv('data/testing/' + tic + '.csv')
+        output_values = pd.read_csv(TESTINGFOLDER + tic + '.csv')
         #creates an array of input vectors for a given stock and the training days
         input_values = [0]*len(output_values.index)
         data = pd.read_csv('data/normalized_data/' + tic + '.csv')
@@ -104,7 +108,7 @@ def inputsForTesting(tics):
             
 
         inputters.append(input_values)
-        outputters.append(output_values['Up or Down'].to_numpy())
+        outputters.append(output_values[COLUMNNAME].to_numpy())
     #map tics to their respective lists of inputs and outputs
     input_dict=dict(zip([tics], inputters))
     output_dict=dict(zip([tics],outputters))

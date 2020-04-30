@@ -15,7 +15,7 @@ def num1sTesting(path,numToCheck=10):
             
             #gets the number of 1 and zeros in the testing file
             for i in range(len(data)):
-                if data['Up or Down'][i] == 1:
+                if data['1or0'][i] == 1:
                     numRight = numRight + 1
                 total = total +1
             
@@ -36,7 +36,10 @@ def percent_change(attributtes,threshold,days_ahead = 1,numToCheck =10):
             
             #gets the number of times a stock grows a specific percent over a period of time
             for i in range(len(data[attributtes[1]])-days_ahead):
-                highPrice = data[attributtes[1]][i+1:i+days_ahead].max()
+                if threshold > 0:
+                    highPrice = data[attributtes[1]][i+1:i+days_ahead].max()
+                else:
+                    highPrice = data[attributtes[1]][i+1:i+days_ahead].min()
                 currPrice = data[attributtes[0]][i]
                 percent_increase = (highPrice-currPrice)/currPrice 
                 if percent_increase > threshold:

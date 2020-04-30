@@ -3,6 +3,15 @@ import pandas as pd
 import os
 import concurrent.futures
 from random import random
+import quick_stats as stats
+
+
+TESTINGFOLDER = 'data/testing/testing+03/'
+TRAININGFOLDER = 'data/training/training+03/'
+ATTRIBUTES = ['close','high']
+THRESHOLD = .03
+DAYSAHEAD = 5
+NUMSTOCKS = -1
 
 #Pass path and tic of normalized data
 def splitCSVData(path,tic):
@@ -26,27 +35,41 @@ def splitCSVData(path,tic):
 def splitCSVDataUPDown(path,tic):
     if os.path.exists( path + tic + r'.csv'):
         data = pd.read_csv('data/historical_stock_data/' + tic + r'.csv')
-
         datav = pd.read_csv(path + tic + r'.csv', index_col=False)
         x= len(datav)
         rows=[r for r in range(0,x)]
-        cols=["date", "dayToDay"] 
+        cols=["date", ATTRIBUTES[0]] 
         dataframe=pd.DataFrame(data=datav, index=rows, columns=cols)
-        cols=["date", "Up or Down"] 
+        cols=["date", "1or0"] 
         dataframeForTraining=pd.DataFrame(columns=cols)
         dataframeForTesting=pd.DataFrame(columns=cols)
         for k in range(0,x):
             val= random()
-            highPrice = data['high'][k+1:k+5].max()
-            currPrice = data['high'][k]
-            percent_increase = (highPrice-currPrice)/currPrice 
-            price=dataframe.iloc[k,1]
             date = dataframe.iloc[k,0]
-            if(percent_increase > 0.03 ):
-                price = 1
+            if len(ATTRIBUTES) > 1:
+                if THRESHOLD > 0:
+                    highPrice = data[ATTRIBUTES[1]][k+1:k+DAYSAHEAD].max()
+                else:
+                    highPrice = data[ATTRIBUTES[1]][k+1:k+DAYSAHEAD].min()
+                currPrice = data[ATTRIBUTES[0]][k]
+                percent_increase = (highPrice-currPrice)/currPrice 
+                if(THRESHOLD >= 0):
+                    if(percent_increase > THRESHOLD ):
+                        price = 1
+                    else:
+                        price = 0
+                    df2 = pd.DataFrame({"date": [date],"1or0": [price]}, columns=['date',"1or0"])
+                else:
+                    if(percent_increase < THRESHOLD ):
+                        price = 1
+                    else:
+                        price = 0
+                    df2 = pd.DataFrame({"date": [date],"1or0": [price]}, columns=['date',"1or0"])
             else:
-                price = 0
-            df2 = pd.DataFrame({"date": [date],"Up or Down": [price]}, columns=cols)
+                price=dataframe.iloc[k,1]
+                df2 = pd.DataFrame({"date": [date],ATTRIBUTES[0]: [price]}, columns=['date',ATTRIBUTES[0]])
+
+            #seperates to testing and training
             if(val<.3):
                 dataframeForTesting=dataframeForTesting.append(df2,ignore_index=True)
             else:
@@ -59,17 +82,32 @@ def exportToCSVTestingAndTraining(path,tic):
         dataSplit=splitCSVDataUPDown(path,tic)
         testing=dataSplit[0].tail(1500)
         training=dataSplit[1].tail(1500)
-        testing.to_csv(r'data/testing/' + tic + r'.csv',  index = False)
-        training.to_csv(r'data/training/' + tic + r'.csv', index = False) 
+        try:
+            testing.to_csv(TESTINGFOLDER + tic + r'.csv',  index = False)
+            training.to_csv(TRAININGFOLDER + tic + r'.csv', index = False) 
+        except FileNotFoundError:
+            os.mkdir(TESTINGFOLDER[:-1])
+            os.mkdir(TRAININGFOLDER[:-1])
+            testing.to_csv(TESTINGFOLDER + tic + r'.csv',  index = False)
+            training.to_csv(TRAININGFOLDER + tic + r'.csv', index = False) 
+
         print(tic)
 
+def printTestStatistics():
+    stats.num1sTesting(TESTINGFOLDER)
+    if NUMSTOCKS > 100:
+        stats.percent_change(ATTRIBUTES,THRESHOLD,numToCheck=NUMSTOCKS)
+    else:
+        stats.percent_change(ATTRIBUTES,THRESHOLD,days_ahead=DAYSAHEAD,numToCheck=NUMSTOCKS)
 
 if __name__ == "__main__":
     tickers = pd.read_csv('data/stock_names.csv')['Ticker'] #gets stock Tickers 
-    print(tickers)
+    if NUMSTOCKS > 0:
+        tickers = tickers[:NUMSTOCKS]
+    print('num stocks: ', len(tickers))
     executor = concurrent.futures.ProcessPoolExecutor(20)
     #runs the update stock tic method for each ticker
     futures = [executor.submit(exportToCSVTestingAndTraining,'data/historical_stock_data/' ,tic,) for tic in tickers]
     concurrent.futures.wait(futures)
-    """ exportToCSVTestingAndTraining('data/historical_stock_data/','A') """
     #TO DO: make into function that inputs test folder, attributte, and threshold
+    printTestStatistics()
