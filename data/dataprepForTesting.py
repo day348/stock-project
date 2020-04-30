@@ -72,4 +72,4 @@ if __name__ == "__main__":
     futures = [executor.submit(exportToCSVTestingAndTraining,'data/historical_stock_data/' ,tic,) for tic in tickers]
     concurrent.futures.wait(futures)
     """ exportToCSVTestingAndTraining('data/historical_stock_data/','A') """
-    
+    #TO DO: make into function that inputs test folder, attributte, and threshold
