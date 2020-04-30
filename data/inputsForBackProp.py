@@ -4,6 +4,7 @@ from progressbar import ProgressBar
 import time
 import tqdm
 from multiprocessing import Pool
+import tqdm
 
 def getInputs(date, inputData): 
     listOfDates= list(inputData.index)

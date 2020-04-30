@@ -23,17 +23,17 @@ def test(network,inputs,outputs,stock_tickers):
             counters[5] = counters[5] + 1
             if goal == 1:
                 counters[0] = counters[0] + 1
-                if prediction > .75:
+                if prediction > .6:
                     counters[1] = counters[1] + 1
                     num1 = num1 +1 
-                elif prediction < .25:
+                elif prediction < .4:
                     num0 = num0 +1 
                     counters[4] = counters[4] + 1
             else:
-                if prediction < .25:
+                if prediction < .4:
                     counters[3] = counters[3] + 1
                     num0 = num0 +1 
-                elif prediction > .75:
+                elif prediction > .6:
                     num1 = num1 +1 
                     counters[2] = counters[2] + 1
             print("goal: ", goal, " Prediction: ", prediction)

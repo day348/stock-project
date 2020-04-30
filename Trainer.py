@@ -13,10 +13,10 @@ import pandas as pd
 import os
 
 #setup
-NODES_PER_LAYER = [7,7,1]
-ACTIVATION_FUNCTIONS = [4,7]
-NUM_ITERATIONS = 0
-LEARN_RATE = 1
+NODES_PER_LAYER = [7,1]
+ACTIVATION_FUNCTIONS = [7]
+NUM_ITERATIONS = 10
+LEARN_RATE = .1
 #make negative to use all stocks
 MAX_STOCKS = 1
 

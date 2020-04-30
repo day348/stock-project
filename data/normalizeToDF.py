@@ -8,7 +8,10 @@ from multiprocessing import Pool
 def percentChange(low,high, value):
     if high-low!=0 :
         div = (value - low)/(high - low)
-        return div
+        """ if div < 0:
+            print("high: ", high, " low: ", low, " value", value)
+            raise Exception """
+        return 2*div-1
     else:
         return .5
 def transform(vals):
@@ -23,7 +26,6 @@ def transform(vals):
     return v
 def normalize(path, tic):
     if os.path.exists( path + tic + r'.csv'):
-        print('start: ' + tic)
         data = pd.read_csv(path + tic + r'.csv')
         low= [0]*len(data['low'])
         high= [0]*len(data['low'])
@@ -44,35 +46,33 @@ def normalize(path, tic):
         fiftyTwoWeekAverage= [0]*len(data['low'])
         fiftyTwoDayStandDev= [0]*len(data['low'])
         fiftyTwoWeekStandDev= [0]*len(data['low'])
-        for i in range(10,len(data['high'])):
-            priceLow = data['52 week low'][i]
-            priceHigh = data['52 week high'][i]
-            if(i <= 5):
-                volLow = data['volume'][0:i].min()
-                volHigh = data['volume'][0:i].max()
-                rangeLow = data['range'][0:i].min()
-                rangeHigh = data['range'][0:i].max()
-                sdayLow = data['single_day_change'][0:i].min()
-                sdayHigh = data['single_day_change'][0:i].max()
-                ddayLow = data['day_to_day_change'][0:i].min()
-                ddayHigh = data['day_to_day_change'][0:i].max()
-                deviationLow = data['52 week standard deviation'][0:i].min()
-                deviationHigh = data['52 week standard deviation'][0:i].max()
-                ddeviationLow = data['52 day standard deviation'][0:i].min()
-                ddeviationHigh = data['52 day standard deviation'][0:i].max()
+        for i in range(len(data['high'])):
+            if(i <= 10):
+                lowIndex = 0
             else:
-                volLow = data['volume'][i-5:i].min() 
-                volHigh = data['volume'][i-5:i].max()
-                rangeLow = data['range'][i-5:i].min()
-                rangeHigh = data['range'][i-5:i].max()
-                sdayLow = data['single_day_change'][i-5:i].min()
-                sdayHigh = data['single_day_change'][i-5:i].max()
-                ddayLow = data['day_to_day_change'][i-5:i].min()
-                ddayHigh = data['day_to_day_change'][i-5:i].max()
-                deviationLow = data['52 week standard deviation'][i-5:i].min()
-                deviationHigh = data['52 week standard deviation'][i-5:i].max()
-                ddeviationLow = data['52 day standard deviation'][i-5:i].min()
-                ddeviationHigh = data['52 day standard deviation'][i-5:i].max()
+                lowIndex = i-10
+
+            priceLow = data['low'][lowIndex:i+1].min()
+            priceHigh = data['high'][lowIndex:i+1].max()
+            volLow = data['volume'][lowIndex:i+1].min()
+            volHigh = data['volume'][lowIndex:i+1].max()
+            volemaLow = data['volume ema'][lowIndex:i+1].min()
+            volemaHigh = data['volume ema'][lowIndex:i+1].max()
+            rangeLow = data['range'][lowIndex:i+1].min()
+            rangeHigh = data['range'][lowIndex:i+1].max()
+            sdayLow = data['single_day_change'][lowIndex:i+1].min()
+            sdayHigh = data['single_day_change'][lowIndex:i+1].max()
+            ddayLow = data['day_to_day_change'][lowIndex:i+1].min()
+            ddayHigh = data['day_to_day_change'][lowIndex:i+1].max()
+            deviationLow = data['52 week standard deviation'][lowIndex:i+1].min()
+            deviationHigh = data['52 week standard deviation'][lowIndex:i+1].max()
+            ddeviationLow = data['52 day standard deviation'][lowIndex:i+1].min()
+            ddeviationHigh = data['52 day standard deviation'][lowIndex:i+1].max()
+            pwLow = data['52 week low'][lowIndex:i+1].min()
+            pwHigh = data['52 week high'][lowIndex:i+1].max()
+            emaLow = data['26 day ema'][lowIndex:i+1].min()
+            emaHigh = data['26 day ema'][lowIndex:i+1].max()
+
             low[i]=percentChange(priceLow,priceHigh, data['low'][i])
             high[i]=percentChange(priceLow,priceHigh, data['high'][i])
             average[i]=percentChange(priceLow,priceHigh, data['average'][i])
@@ -82,16 +82,20 @@ def normalize(path, tic):
             twelveDay[i]=percentChange(priceLow,priceHigh, data['12 day ema'][i])
             twentySixDay[i]=percentChange(priceLow,priceHigh, data['26 day ema'][i])
             volume[i]=percentChange(volLow,volHigh,data['volume'][i])
-            volumeEMA[i]=percentChange(volLow,volHigh,data['volume ema'][i])
+            volumeEMA[i]=percentChange(volemaLow,volemaHigh,data['volume ema'][i])
             singleDay[i]=percentChange(sdayLow,sdayHigh, data['single_day_change'][i])
             dayToDay[i]=percentChange(ddayLow,ddayHigh, data['day_to_day_change'][i])
-            fiftyTwoDayHigh[i]=percentChange(priceLow,priceHigh, data['52 day high'][i])
-            fiftyTwoWeekHigh[i]=percentChange(priceLow,priceHigh, data['52 week high'][i])
-            fiftyTwoDayLow[i]=percentChange(priceLow,priceHigh, data['52 day low'][i])
-            fiftyTwoWeekLow[i]=percentChange(priceLow,priceHigh, data['52 week low'][i])
-            fiftyTwoWeekAverage[i]=percentChange(priceLow,priceHigh, data['52 week average'][i])
+            fiftyTwoDayHigh[i]=percentChange(pwLow,pwHigh, data['52 day high'][i])
+            fiftyTwoWeekHigh[i]=percentChange(pwLow,pwHigh, data['52 week high'][i])
+            fiftyTwoDayLow[i]=percentChange(pwLow,pwHigh, data['52 day low'][i])
+            fiftyTwoWeekLow[i]=percentChange(pwLow,pwHigh, data['52 week low'][i])
+            fiftyTwoWeekAverage[i]=percentChange(pwLow,pwHigh, data['52 week average'][i])
             fiftyTwoDayStandDev[i]=percentChange(ddeviationLow,ddeviationHigh, data['52 day standard deviation'][i])
             fiftyTwoWeekStandDev[i]=percentChange(deviationLow,deviationHigh, data['52 week standard deviation'][i])
+            """ if low[i] < 0:
+                print("high: ", priceHigh, " low: ", priceLow, " value", data['low'][i], " output: ", low[i])
+                raise Exception """
+            
     else:
         return -1
     listOfDates= data['date']
