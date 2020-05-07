@@ -8,6 +8,8 @@ import neural_network.NeuralNet as nn
 import training.testing as testing
 from data import inputsForBackProp as dp
 from tqdm import tqdm
+from multiprocessing import Pool
+import itertools
 
 def num1sTesting(path,numToCheck=10):
     tickers = pd.read_csv('data/stock_names.csv')['Ticker'] #gets stock Tickers 
@@ -73,6 +75,18 @@ def day_change_check(data,attributtes,threshold,days_ahead = 1):
             return True
         return False
 
+def testing_network(tic):
+    #gets data
+    stock_data_normalized = pd.read_csv('data/normalized_data/' + tic + '.csv',index_col='date')
+    stock_data = pd.read_csv('data/historical_stock_data/' + tic + '.csv',index_col='date',).tail(1500)
+    for date in stock_data_normalized.index[20:]:
+        input_data = dp.getInputs(date,stock_data_normalized)
+        prediction = network.calculateOutput(input_data,single_input=True)
+        if day_change_check(stock_data,['close','high'],.03,4):
+            return (prediction,1)
+        return (prediction,0)
+
+network = nn.NeuralNet([0,0,7],[41,100,50,1])        
 if __name__ == "__main__":
         
     #Examples:
@@ -87,19 +101,15 @@ if __name__ == "__main__":
     for tic in stock_tickers:
         if not os.path.exists('data/normalized_data/' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
+
+    pool = Pool()
+    results = list(tqdm(pool.imap(testing_network,stock_tickers),total=len(stock_tickers)))
+    pool.close()
+    pool.join()
+    print(len(results[0]))
+    results = [[i for i in results[j] if i] for j in range(len(results))]
+    results = list(itertools.chain.from_iterable(results))
     #grabs data from 2% of stocks
-    stock_tickers = stock_tickers.sample(frac=.02)
-    total = 0
-    numOver = 0
-    for tic in tqdm(stock_tickers):
-        #gets data
-        stock_data_normalized = pd.read_csv('data/normalized_data/' + tic + '.csv',index_col='date')
-        stock_data = pd.read_csv('data/historical_stock_data/' + tic + '.csv',index_col='date',)
-        for date in stock_data_normalized.index[20:]:
-            input_data = dp.getInputs(date,stock_data_normalized)
-            prediction = network.calculateOutput(input_data,single_input=True)
-            if day_change_check(stock_data,['close','high',],.03,4):
-                numOver = numOver + 1
-            total = total +1 
-    print(numOver/total)
+    
+    print(len(results))
             
