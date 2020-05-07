@@ -6,11 +6,11 @@ from random import random
 import quick_stats as stats
 
 
-TESTINGFOLDER = 'data/testing/testing+03/'
-TRAININGFOLDER = 'data/training/training+03/'
-ATTRIBUTES = ['close','high']
-THRESHOLD = .03
-DAYSAHEAD = 5
+TESTINGFOLDER = 'data/testing/testing-01/'
+TRAININGFOLDER = 'data/training/training-01/'
+ATTRIBUTES = ['close','close']
+THRESHOLD = -.01
+DAYSAHEAD = 2
 NUMSTOCKS = -1
 
 #Pass path and tic of normalized data
@@ -47,10 +47,10 @@ def splitCSVDataUPDown(path,tic):
             val= random()
             date = dataframe.iloc[k,0]
             if len(ATTRIBUTES) > 1:
-                if THRESHOLD > 0:
-                    highPrice = data[ATTRIBUTES[1]][k+1:k+DAYSAHEAD].max()
+                if THRESHOLD >= 0:
+                    highPrice = data[ATTRIBUTES[1]][k+1:k+1+DAYSAHEAD].max()
                 else:
-                    highPrice = data[ATTRIBUTES[1]][k+1:k+DAYSAHEAD].min()
+                    highPrice = data[ATTRIBUTES[1]][k+1:k+1+DAYSAHEAD].min()
                 currPrice = data[ATTRIBUTES[0]][k]
                 percent_increase = (highPrice-currPrice)/currPrice 
                 if(THRESHOLD >= 0):
@@ -82,14 +82,16 @@ def exportToCSVTestingAndTraining(path,tic):
         dataSplit=splitCSVDataUPDown(path,tic)
         testing=dataSplit[0].tail(1500)
         training=dataSplit[1].tail(1500)
-        try:
-            testing.to_csv(TESTINGFOLDER + tic + r'.csv',  index = False)
-            training.to_csv(TRAININGFOLDER + tic + r'.csv', index = False) 
-        except FileNotFoundError:
-            os.mkdir(TESTINGFOLDER[:-1])
-            os.mkdir(TRAININGFOLDER[:-1])
-            testing.to_csv(TESTINGFOLDER + tic + r'.csv',  index = False)
-            training.to_csv(TRAININGFOLDER + tic + r'.csv', index = False) 
+        if (len(testing) >100) & (len(training) >100):
+            try:
+                testing.to_csv(TESTINGFOLDER + tic + r'.csv',  index = False)
+                training.to_csv(TRAININGFOLDER + tic + r'.csv', index = False) 
+            except FileNotFoundError:
+                print('creating new folder')
+                os.mkdir(TESTINGFOLDER[:-1])
+                os.mkdir(TRAININGFOLDER[:-1])
+                testing.to_csv(TESTINGFOLDER + tic + r'.csv',  index = False)
+                training.to_csv(TRAININGFOLDER + tic + r'.csv', index = False) 
 
         print(tic)
 
@@ -105,7 +107,11 @@ if __name__ == "__main__":
     if NUMSTOCKS > 0:
         tickers = tickers[:NUMSTOCKS]
     print('num stocks: ', len(tickers))
+    print('threshold: ',THRESHOLD)
+    print('testing folder: ', TESTINGFOLDER)
+    print('training folder: ',TRAININGFOLDER )
     executor = concurrent.futures.ProcessPoolExecutor(20)
+    #exportToCSVTestingAndTraining('data/historical_stock_data/' ,tickers[0])
     #runs the update stock tic method for each ticker
     futures = [executor.submit(exportToCSVTestingAndTraining,'data/historical_stock_data/' ,tic,) for tic in tickers]
     concurrent.futures.wait(futures)

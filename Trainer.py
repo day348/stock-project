@@ -5,6 +5,7 @@ from multiprocessing import Pool
 from progressbar import ProgressBar 
 from training.testing import test
 import matplotlib.pyplot as plt
+import random
 import numpy as np
 import tqdm
 import sys
@@ -13,13 +14,14 @@ import pandas as pd
 import os
 
 #setup
-NODES_PER_LAYER = [17,1]
-ACTIVATION_FUNCTIONS = [7]
-NUM_ITERATIONS = 10
-LEARN_RATE = .01
+NODES_PER_LAYER = [41,100,50,1]
+ACTIVATION_FUNCTIONS = [0,0,7]
+NUM_ITERATIONS = 500
+LEARN_RATE = .0005
 #make negative to use all stocks
-MAX_STOCKS = 100
-
+MAX_STOCKS = -1
+TESTINGFOLDER = 'data/testing/testing+03/'
+TRAININGFOLDER = 'data/training/training+03/'
 """
 0 : TanH        1 : arcTan      2 : Elu
 3 : Identity    4 : LeakyRelu   5 : RandomRelu  
@@ -37,14 +39,14 @@ if __name__ == "__main__":
     time_per_stock = 0
     time_per_iteration = 0
     overview_string = ''
-
+    total_time = -time.time()
     #create neural network
     network = nn.NeuralNet(ACTIVATION_FUNCTIONS, NODES_PER_LAYER)
     #get tickers 
     stock_tickers = pd.read_csv('data/stock_names.csv')['Ticker']
     #removes tickers wihtout data
     for tic in stock_tickers:
-        if not os.path.exists('data/training/' + tic + '.csv'):
+        if not os.path.exists(TRAININGFOLDER + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
         if not os.path.exists('data/normalized_data/' + tic + '.csv'):
             stock_tickers = stock_tickers[stock_tickers != tic]
@@ -72,14 +74,30 @@ if __name__ == "__main__":
     pbar = ProgressBar()
     messedUp = False 
     for i in pbar(range(NUM_ITERATIONS)):
+        #gets random sample from total to train on 
+        if (MAX_STOCKS < 0) | (MAX_STOCKS >= 100):
+            tickers = stock_tickers.sample(frac=.02)
+        else:   
+            tickers = stock_tickers
+        #print(tickers)
         training_errors[i] = 0
         time_taken = 0
-        for tic in stock_tickers:
- 
+        #increases the learn rate 10 fold every 100 iterations 
+        #this caps out before gets above 1
+        if (i % 100 == 0) & (LEARN_RATE < .5):
+            LEARN_RATE = LEARN_RATE * 10
+        #print(LEARN_RATE)
+        for tic in tickers:
+            stock_inputs = []
+            stock_outputs = []
+            for j in range(len(inputs[tic])):
+                if random.random() <.2:
+                    stock_inputs.append(inputs[tic][j])
+                    stock_outputs.append(outputs[tic][j])
             backPropTime = -time.time()
             #back propigation call
             try:
-                training_errors[i] = training_errors[i] + (network.backProp(inputs[tic], outputs[tic], learnRate=LEARN_RATE)[0]/len(outputs[tic]))
+                training_errors[i] = training_errors[i] + (network.backProp(stock_inputs, stock_outputs, learnRate=LEARN_RATE)[0]/len(stock_outputs))
             except Exception as e:
                 print("failed on iteration ", i, ' on stock ', tic)
                 print('error timeline:')
@@ -100,7 +118,7 @@ if __name__ == "__main__":
             
         #counters
         time_per_iteration = time_taken + time_per_iteration
-        training_errors[i] = (training_errors[i] / len(stock_tickers.index))*100
+        training_errors[i] = (training_errors[i] / len(tickers.index))*100
         #error editors and prints
         print('average prediction error on iteration', i+1, ':',training_errors[i], '%')
         if messedUp:
@@ -108,7 +126,7 @@ if __name__ == "__main__":
             break
     if(NUM_ITERATIONS != 0):
         time_per_iteration = time_per_iteration / NUM_ITERATIONS
-    time_per_stock = time_per_iteration / len(stock_tickers)
+    time_per_stock = time_per_iteration / (len(stock_tickers)*.02)
     end_weights = network.weights
 
     #print(network.weights)
@@ -120,7 +138,8 @@ if __name__ == "__main__":
     print('\nStarting testing\n')
     # Test the final network
     testing_errors, avg_test_error, counters =  test(network,inputs,outputs,stock_tickers)
-    
+    #final time stop
+    total_time = total_time + time.time()
     def save_results():
         #creates new test folder
         folder_created = False
@@ -135,7 +154,7 @@ if __name__ == "__main__":
             except FileExistsError:
                 pass
         #saves start and end wieghts
-        print(start_weights)
+        #print(start_weights)
         np.save(test_folder + '/start_weights',start_weights)
         np.save(test_folder + '/end_weights',end_weights)
         #saves testing and training data 
@@ -148,7 +167,9 @@ if __name__ == "__main__":
         overview_string = overview_string + "\tnodes per layer: " + str(NODES_PER_LAYER) + '\n'
         overview_string = overview_string + "\tactivation functions: " +  str(ACTIVATION_FUNCTIONS) + "\n"
         overview_string = overview_string + "\tnumber of stocks: " + str(len(stock_tickers)) + '\n'
+        overview_string = overview_string + "\tlearn rate: " + str(LEARN_RATE) + '\n'
         overview_string = overview_string + '\nStatistics:\n'
+        overview_string = overview_string + "\ttotal training time: " + str(total_time) + '\n'
         overview_string = overview_string + '\tbackprop time per stock= ' + str(time_per_stock) + '\n'
         overview_string = overview_string + '\tbackprop time per iteration = ' + str(time_per_iteration) + '\n'
         overview_string = overview_string + '\tstart training error = ' + str(training_errors[0])+ '%\n'

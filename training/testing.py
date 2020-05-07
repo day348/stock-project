@@ -15,6 +15,10 @@ def test(network,inputs,outputs,stock_tickers):
         for i in range(len(inputs[tic])):
             try:
                 prediction = network.calculateOutput(inputs[tic][i],single_input=True)
+                """ if sum(inputs[tic][i]) > 2:
+                    prediction = 1
+                else:
+                    prediction = 0 """
             except:
                 print("tic: ",tic)
                 print("input:")
@@ -23,31 +27,37 @@ def test(network,inputs,outputs,stock_tickers):
             counters[5] = counters[5] + 1
             if goal == 1:
                 counters[0] = counters[0] + 1
-                if prediction > .6:
+                if prediction > .5:
                     counters[1] = counters[1] + 1
                     num1 = num1 +1 
-                elif prediction < .4:
+                elif prediction < .5:
                     num0 = num0 +1 
                     counters[4] = counters[4] + 1
             else:
-                if prediction < .4:
+                if prediction < .5:
                     counters[3] = counters[3] + 1
                     num0 = num0 +1 
-                elif prediction > .6:
+                elif prediction > .5:
                     num1 = num1 +1 
                     counters[2] = counters[2] + 1
-            print("goal: ", goal, " Prediction: ", prediction)
+            if i == 10:
+                pass
+                #print(prediction)
+            #print("goal: ", goal, " Prediction: ", prediction)
             testing_errors[j] = testing_errors[j] + np.abs(prediction - goal)
             #TO DO: amount in the right direction
-        if(num0 > len(inputs[tic])*.95 or num1 > len(inputs[tic])*.95 ):
-            print("converged to constant solution. num 0:", num0, " num 1: ", num1)
-
-        testing_errors[j] = testing_errors[j]*100/len(inputs[tic])
+            #checks convergenct
+        """ if(num0 > len(inputs[tic])*.95 or num1 > len(inputs[tic])*.95 ):
+            print("converged to constant solution. num 0:", num0, " num 1: ", num1) """
+        if len(inputs) != 0:
+            testing_errors[j] = testing_errors[j]*100/len(inputs[tic])
+        else:
+            testing_errors = -1
         #print('Error for ',tic, ': ', testing_errors[j]*100, '%')
     counters[0] = float(counters[0]) / float(counters[5])
-    print('total testing average error: ', np.average(testing_errors), '%')
+    #print('total testing average error: ', np.average(testing_errors), '%')
     avg_test_error = np.average(testing_errors)
     temp = pd.DataFrame({'testing errors':testing_errors})
     testing_errors = temp.join(stock_tickers)
-    print(counters)
+    #print(counters)
     return testing_errors.set_index('Ticker'), avg_test_error, counters

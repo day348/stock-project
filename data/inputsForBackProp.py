@@ -26,7 +26,7 @@ def getInputs(date, inputData):
     for i in range(endIndex, beginningIndex):
         relevantDates.append(new_dict[i])
     output=[]
-    for i in relevantDates[-5:]:
+    for i in relevantDates[-20:]:
         output.append(inputData['close'][i])
         if i == relevantDates[-1]:
             output.append(inputData['range'][i])
@@ -34,19 +34,31 @@ def getInputs(date, inputData):
             output.append(inputData['dayToDay'][i])
             output.append(inputData['low'][i])
             output.append(inputData['high'][i])
-            """ output.append(inputData['average'][i])
-            output.append(inputData['open'][i]) """
-            output.append(inputData['volume'][i])
-            output.append(inputData['twelveDay'][i])
-            output.append(inputData['twentySixDay'][i])
+            output.append(inputData['average'][i])
+            output.append(inputData['open'][i])
+            if inputData['dayToDay'][i] > 0:
+                output.append(1)
+            else:
+                output.append(0)
+            if inputData['twelveDay'][i]- inputData['twelveDay'][relevantDates[-2]] > 0:
+                output.append(1)
+            else:
+                output.append(0)
+            if inputData['twentySixDay'][i]- inputData['twentySixDay'][relevantDates[-2]] > 0:
+                output.append(1)
+            else:
+                output.append(0)
+            output.append(inputData['volume'][i] - inputData['volume'][relevantDates[-2]])
+            output.append(inputData['twelveDay'][i]- inputData['twelveDay'][relevantDates[-2]])
+            output.append(inputData['twentySixDay'][i]- inputData['twentySixDay'][relevantDates[-2]])
             output.append(inputData['volumeEMA'][i])
             output.append(inputData['fiftyTwoDayHigh'][i])
-            """ output.append(inputData['fiftyTwoWeekHigh'][i]) """
+            output.append(inputData['fiftyTwoWeekHigh'][i])
             output.append(inputData['fiftyTwoDayLow'][i])
-            """ output.append(inputData['fiftyTwoWeekLow'][i])
-            output.append(inputData['fiftyTwoWeekAverage'][i]) """
+            output.append(inputData['fiftyTwoWeekLow'][i])
+            output.append(inputData['fiftyTwoWeekAverage'][i])
             output.append(inputData['fiftyTwoDayStandDev'][i])
-            """ output.append(inputData['fiftyTwoWeekStandDev'][i]) """
+            output.append(inputData['fiftyTwoWeekStandDev'][i])
     return np.array(output)
     
 #given a set of tickers it returns two dictionaries one mapping 
