@@ -1,0 +1,14 @@
+prediction threshold: 0.6
+gain threshold: 0.03
+minimum price: 0
+days ahead: 3
+attributes: ['close', 'high']
+
+STATS:
+
+total predicted right to boom: 170
+total predicted to boom: 343
+percent right: 0.4956268221574344
+percent meeting threshold in general: 0.21852781263069845
+average false positive 3 day gain: -2.2516225613777587% 
+average 5 day gain not meeting threshold: -0.8212752773478396

@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import random
 import neural_network.activation_functions as af
@@ -22,9 +21,14 @@ class NeuralNet:
     #                               corresponding to each layer of the network
     def __init__(self,activation_funcs, nodes_per_layer):
 
+        #gives normal distrobution for starting weights
         #checks gives correct weight info as input
         num_layers = len(nodes_per_layer)
-        self.weights =  [np.random.rand(nodes_per_layer[k],nodes_per_layer[k+1])/(nodes_per_layer[k+1])  for k in range(num_layers-1) ]
+        def getRandWeights(numInput,numOutput,active_func):
+                varriance = np.sqrt(2/(numInput+numOutput))
+                weight_matrix = np.random.normal(0,varriance,(numInput,numOutput))
+                return weight_matrix
+        self.weights =  [getRandWeights(nodes_per_layer[k],nodes_per_layer[k+1],activation_funcs[k]) for k in range(num_layers-1) ]
         
         #checks activation functions
         if len(activation_funcs) == len(self.weights):
@@ -44,17 +48,23 @@ class NeuralNet:
         listToBeReturned=[]
         other=[]
         for a in range(0,b):
-            listToBeReturned.append(input);
+            listToBeReturned.append(input)
             if(a == 0):
                 other.append(input)
             try:
                 output= np.dot(self.weights[a].T, input)
                 other.append(output)
-            except ValueError: 
+            except ValueError as inst: 
                 print("Matrices were invalid dimensions or...")
+                print("input:")
+                print(input)
+                print("layer of network:")
+                self.weights[a]
+                print("error: ",inst)
             except Exception as inst:
                 print('Likely math range error')
                 print(inst)
+                print("error: ",inst)
             active= self.activation_functions[a]
             input = af.func(active,output,rando = rando)
  

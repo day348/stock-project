@@ -8,7 +8,7 @@ def complete_attributes(data):
     #simple attributes
     data['range'] = data['high'] - data['low']
     data['average'] = (data['high'] + data['low'] + data['close'] ) / 3
-    data['single_day_change'] = data['open'] - data['close']
+    data['single_day_change'] = data['close'] - data['open']
 
     #differnce between the last 2 day's closes
     dtd = [0]
@@ -157,7 +157,7 @@ def update_stock(tic):
     return(1)
 
 if __name__ == "__main__":
-    tickers = pd.read_csv('stock_names.csv')['Ticker'] #gets stock Tickers 
+    tickers = pd.read_csv('data/stock_names.csv')['Ticker'] #gets stock Tickers 
     #runs the update stock tic method for each ticker
     executor = concurrent.futures.ProcessPoolExecutor(10)
     futures = [executor.submit(update_stock, tic) for tic in tickers]

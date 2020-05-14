@@ -19,7 +19,7 @@ import numpy
 #general activation function usage
 #takes which function calling and input value
 
-def func(selector, output, rando=None, deriv = False):
+def func(selector, output, rando=1, deriv = False):
     #activation functions and all their derivatives
     def activationSigmoid( input):
         for a in range(0,len(input)):
@@ -75,7 +75,7 @@ def func(selector, output, rando=None, deriv = False):
             else:
                 input[a]=1
         return input
-    def activationStep( input):
+    """ def activationStep( input):
         for a in range(0,len(input)):
             z=input[a]
             if(z<0):
@@ -85,12 +85,18 @@ def func(selector, output, rando=None, deriv = False):
                     raise ValueError("Dimensions are incompatible")
                 else:
                     raise ValueError("Weights are not all same length")
-            return input
+            return input """
     def activationSigmoid(input):
         for a in range(0,len(input)):
             z=input[a]
+            if z == 0:
+                z = .00001
             z=(-1)*z
-            input[a]= 1/(1+math.exp(z))
+            try:
+                input[a]= 1/(1+math.exp(z))
+            except: 
+                print("overloading ouput to Sigmoid")
+                input[a] = 0
         return input
     def derivSigmoid(input):
         z=activationSigmoid(input)
@@ -160,10 +166,15 @@ def func(selector, output, rando=None, deriv = False):
         return input
     def derivStep( input):
         for a in range(0,len(input)):
-            if(input[a]!=0):
+            z=input[a]
+            if(z<0):
+                input[a]=-1
+            else:
+                input[a]=1
+            """ if(input[a]!=0):
                 input[a]=0
             else:
-                raise ValueError("Not differentiable")
+                raise ValueError("Not differentiable") """
         return input
     def activationArcTan( input):
         for a in range(0,len(input)):
