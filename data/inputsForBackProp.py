@@ -6,8 +6,8 @@ import tqdm
 from multiprocessing import Pool
 import tqdm
 
-TRAININGFOLDER='data/training/training+03/'
-TESTINGFOLDER='data/testing/testing+03/'
+TRAININGFOLDER='data/training/training+01/'
+TESTINGFOLDER='data/testing/testing+01/'
 COLUMNNAME= "1or0"
 
 def getInputs(date, inputData): 

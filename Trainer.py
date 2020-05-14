@@ -16,12 +16,12 @@ import os
 #setup
 NODES_PER_LAYER = [41,100,50,1]
 ACTIVATION_FUNCTIONS = [0,0,7]
-NUM_ITERATIONS = 500
+NUM_ITERATIONS = 200
 LEARN_RATE = .0005
 #make negative to use all stocks
 MAX_STOCKS = -1
-TESTINGFOLDER = 'data/testing/testing+03/'
-TRAININGFOLDER = 'data/training/training+03/'
+TESTINGFOLDER = 'data/testing/testing+01/'
+TRAININGFOLDER = 'data/training/training+01/'
 """
 0 : TanH        1 : arcTan      2 : Elu
 3 : Identity    4 : LeakyRelu   5 : RandomRelu  
