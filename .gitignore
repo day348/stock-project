@@ -5,3 +5,4 @@ data/testing*
 data/training*
 test_results/
 historical_stock_data.zip
+data/stats/
